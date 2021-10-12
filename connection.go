@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
+// NewConnection connects to a gRPC service using the specified ConnectionOptions
 func NewConnection(ctx context.Context, opts ...ConnectionOption) (*grpc.ClientConn, error) {
 	const (
 		defaultInsecure = false
