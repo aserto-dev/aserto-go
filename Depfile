@@ -1,0 +1,19 @@
+---
+bin:
+  vault:
+    url: "https://releases.hashicorp.com/vault/{{.Version}}/vault_{{.Version}}_{{.OS}}_{{.Arch}}.zip"
+    version: "1.8.1"
+    zipPaths:
+    - "./vault"
+    sha:
+      linux-amd64: "bb411f2bbad79c2e4f0640f1d3d5ef50e2bda7d4f40875a56917c95ff783c2db"
+      darwin-amd64: "f87221e4f56b3da41f0a029bf2b48896ec3be84dd7075bdb9466def1e056f809"
+      darwin-arm64: "571985c34990a2a7b913cee8c50be42b34c8d8cb751a2aed2c80121ad4b4e44b"
+
+go:
+  gotestsum:
+    importPath: "gotest.tools/gotestsum"
+    version: "v1.6.2"
+  golangci-lint:
+    importPath: "github.com/golangci/golangci-lint/cmd/golangci-lint"
+    version: "v1.38.0"
