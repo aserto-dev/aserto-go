@@ -3,7 +3,7 @@ package authorizer
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto/pkg/grpcc"
+	"github.com/aserto-dev/aserto-go/pkg/grpcc"
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	dir "github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
