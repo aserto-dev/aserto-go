@@ -20,28 +20,28 @@ func NewConnection(ctx context.Context, opts ...ConnectionOption) (*grpc.ClientC
 		defaultTimeout  = time.Duration(5) * time.Second
 	)
 
-	c := &ConnectionOptions{
+	options := &ConnectionOptions{
 		insecure: defaultInsecure,
 		timeout:  defaultTimeout,
 	}
 
 	for _, opt := range opts {
-		opt(c)
+		opt(options)
 	}
 
-	tlsConf, err := tlsConfig(c.insecure)
+	tlsConf, err := tlsConfig(options.insecure)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to setup tls configuration")
 	}
 
-	if c.caCertPath != "" {
-		caCertBytes, err := ioutil.ReadFile(c.caCertPath)
+	if options.caCertPath != "" {
+		caCertBytes, err := ioutil.ReadFile(options.caCertPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read ca cert [%s]", c.caCertPath)
+			return nil, errors.Wrapf(err, "failed to read ca cert [%s]", options.caCertPath)
 		}
 
 		if !tlsConf.RootCAs.AppendCertsFromPEM(caCertBytes) {
-			return nil, errors.Wrapf(err, "failed to append client ca cert [%s]", c.caCertPath)
+			return nil, errors.Wrapf(err, "failed to append client ca cert [%s]", options.caCertPath)
 		}
 	}
 
@@ -52,13 +52,13 @@ func NewConnection(ctx context.Context, opts ...ConnectionOption) (*grpc.ClientC
 
 	conn, err := grpc.DialContext(
 		ctx,
-		c.address,
+		options.address,
 		grpc.WithTransportCredentials(clientCreds),
-		grpc.WithPerRPCCredentials(c.creds),
+		grpc.WithPerRPCCredentials(options.creds),
 		grpc.WithBlock(),
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to setup grpc dial context to %s", c.address)
+		return nil, errors.Wrapf(err, "failed to setup grpc dial context to %s", options.address)
 	}
 
 	return conn, nil

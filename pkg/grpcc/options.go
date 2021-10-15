@@ -17,40 +17,40 @@ type ConnectionOptions struct {
 type ConnectionOption func(*ConnectionOptions)
 
 func WithInsecure(insecure bool) ConnectionOption {
-	return func(c *ConnectionOptions) {
-		c.insecure = insecure
+	return func(options *ConnectionOptions) {
+		options.insecure = insecure
 	}
 }
 
 func WithTimeoutInSecs(secs int) ConnectionOption {
-	return func(c *ConnectionOptions) {
-		c.timeout = time.Second * time.Duration(secs)
+	return func(options *ConnectionOptions) {
+		options.timeout = time.Second * time.Duration(secs)
 	}
 }
 
 func WithAddr(addr string) ConnectionOption {
-	return func(c *ConnectionOptions) {
-		c.address = addr
+	return func(options *ConnectionOptions) {
+		options.address = addr
 	}
 }
 
 func WithCACertPath(path string) ConnectionOption {
-	return func(c *ConnectionOptions) {
-		c.caCertPath = path
+	return func(options *ConnectionOptions) {
+		options.caCertPath = path
 	}
 }
 
 func WithTokenAuth(token string) ConnectionOption {
-	return func(c *ConnectionOptions) {
-		c.creds = &TokenAuth{
+	return func(options *ConnectionOptions) {
+		options.creds = &TokenAuth{
 			token: token,
 		}
 	}
 }
 
 func WithAPIKeyAuth(key string) ConnectionOption {
-	return func(c *ConnectionOptions) {
-		c.creds = &APIKeyAuth{
+	return func(options *ConnectionOptions) {
+		options.creds = &APIKeyAuth{
 			key: key,
 		}
 	}
