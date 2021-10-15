@@ -22,9 +22,9 @@ func WithInsecure(insecure bool) ConnectionOption {
 	}
 }
 
-func WithTimeoutInSecs(secs int) ConnectionOption {
+func WithTimeout(timeout time.Duration) ConnectionOption {
 	return func(options *ConnectionOptions) {
-		options.timeout = time.Second * time.Duration(secs)
+		options.timeout = timeout
 	}
 }
 
