@@ -10,10 +10,6 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-const (
-	clientTimeout = time.Duration(5) * time.Second
-)
-
 func NewConnection(ctx context.Context, opts ...ConnectionOption) (*grpc.ClientConn, error) {
 	const (
 		defaultInsecure = false
@@ -47,7 +43,7 @@ func NewConnection(ctx context.Context, opts ...ConnectionOption) (*grpc.ClientC
 
 	clientCreds := credentials.NewTLS(tlsConf)
 
-	ctx, cancel := context.WithTimeout(ctx, clientTimeout)
+	ctx, cancel := context.WithTimeout(ctx, options.timeout)
 	defer cancel()
 
 	conn, err := grpc.DialContext(
