@@ -13,12 +13,11 @@ import (
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 )
 
 // Client gRPC connection
 type Client struct {
-	conn       *grpc.ClientConn
+	conn       *grpcc.Connection
 	Authorizer authz.AuthorizerClient
 	Directory  dir.DirectoryClient
 	Policy     policy.PolicyClient
@@ -27,16 +26,20 @@ type Client struct {
 
 // New creates an authorizer Client with the specified connection options
 func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
-	conn, err := grpcc.NewConnection(ctx, opts...)
+	connection, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "create grpc client failed")
 	}
 
 	return &Client{
-		conn:       conn,
-		Authorizer: authz.NewAuthorizerClient(conn),
-		Directory:  dir.NewDirectoryClient(conn),
-		Policy:     policy.NewPolicyClient(conn),
-		Info:       info.NewInfoClient(conn),
+		conn:       connection,
+		Authorizer: authz.NewAuthorizerClient(connection.Conn),
+		Directory:  dir.NewDirectoryClient(connection.Conn),
+		Policy:     policy.NewPolicyClient(connection.Conn),
+		Info:       info.NewInfoClient(connection.Conn),
 	}, err
+}
+
+func (client *Client) Context() context.Context {
+	return client.conn.Context
 }

@@ -1,6 +1,7 @@
 package grpcc
 
 import (
+	"context"
 	"time"
 
 	"google.golang.org/grpc/credentials"
@@ -9,8 +10,9 @@ import (
 type ConnectionOptions struct {
 	address    string
 	caCertPath string
-	insecure   bool
+	ctx        context.Context
 	creds      credentials.PerRPCCredentials
+	insecure   bool
 	timeout    time.Duration
 }
 
@@ -53,5 +55,11 @@ func WithAPIKeyAuth(key string) ConnectionOption {
 		options.creds = &APIKeyAuth{
 			key: key,
 		}
+	}
+}
+
+func WithTenantContext(tenantID string) ConnectionOption {
+	return func(options *ConnectionOptions) {
+		options.ctx = SetTenantContext(options.ctx, tenantID)
 	}
 }
