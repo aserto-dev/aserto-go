@@ -10,13 +10,19 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-func NewConnection(ctx context.Context, opts ...ConnectionOption) (*grpc.ClientConn, error) {
+type Connection struct {
+	Conn    *grpc.ClientConn
+	Context context.Context
+}
+
+func NewConnection(ctx context.Context, opts ...ConnectionOption) (*Connection, error) {
 	const (
 		defaultInsecure = false
 		defaultTimeout  = time.Duration(5) * time.Second
 	)
 
 	options := &ConnectionOptions{
+		ctx:      ctx,
 		insecure: defaultInsecure,
 		timeout:  defaultTimeout,
 	}
@@ -43,7 +49,7 @@ func NewConnection(ctx context.Context, opts ...ConnectionOption) (*grpc.ClientC
 
 	clientCreds := credentials.NewTLS(tlsConf)
 
-	ctx, cancel := context.WithTimeout(ctx, options.timeout)
+	ctx, cancel := context.WithTimeout(options.ctx, options.timeout)
 	defer cancel()
 
 	conn, err := grpc.DialContext(
@@ -57,5 +63,5 @@ func NewConnection(ctx context.Context, opts ...ConnectionOption) (*grpc.ClientC
 		return nil, errors.Wrapf(err, "failed to setup grpc dial context to %s", options.address)
 	}
 
-	return conn, nil
+	return &Connection{Conn: conn, Context: options.ctx}, nil
 }

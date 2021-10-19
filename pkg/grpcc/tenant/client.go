@@ -17,12 +17,11 @@ import (
 	// system "github.com/aserto-dev/go-grpc/aserto/tenant/system/v1"
 
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
 )
 
 // Client tenant gRPC connection
 type Client struct {
-	conn        *grpc.ClientConn
+	conn        *grpcc.Connection
 	Account     account.AccountClient
 	Connections connection.ConnectionClient
 	Onboarding  onboarding.OnboardingClient
@@ -42,13 +41,17 @@ func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
 
 	return &Client{
 		conn:        conn,
-		Account:     account.NewAccountClient(conn),
-		Connections: connection.NewConnectionClient(conn),
-		Onboarding:  onboarding.NewOnboardingClient(conn),
-		Policy:      policy.NewPolicyClient(conn),
-		Profile:     profile.NewProfileClient(conn),
-		Provider:    provider.NewProviderClient(conn),
-		SCC:         scc.NewSourceCodeCtlClient(conn),
-		Info:        info.NewInfoClient(conn),
+		Account:     account.NewAccountClient(conn.Conn),
+		Connections: connection.NewConnectionClient(conn.Conn),
+		Onboarding:  onboarding.NewOnboardingClient(conn.Conn),
+		Policy:      policy.NewPolicyClient(conn.Conn),
+		Profile:     profile.NewProfileClient(conn.Conn),
+		Provider:    provider.NewProviderClient(conn.Conn),
+		SCC:         scc.NewSourceCodeCtlClient(conn.Conn),
+		Info:        info.NewInfoClient(conn.Conn),
 	}, err
+}
+
+func (client *Client) Context() context.Context {
+	return client.conn.Context
 }
