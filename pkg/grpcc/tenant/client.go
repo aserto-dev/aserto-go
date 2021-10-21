@@ -14,12 +14,10 @@ import (
 	provider "github.com/aserto-dev/go-grpc/aserto/tenant/provider/v1"
 	scc "github.com/aserto-dev/go-grpc/aserto/tenant/scc/v1"
 
-	// system "github.com/aserto-dev/go-grpc/aserto/tenant/system/v1"
-
 	"github.com/pkg/errors"
 )
 
-// Client tenant gRPC connection
+// Client tenant gRPC connection.
 type Client struct {
 	conn        *grpcc.Connection
 	Account     account.AccountClient
@@ -32,7 +30,7 @@ type Client struct {
 	Info        info.InfoClient
 }
 
-// New creates a tenant Client with the specified connection options
+// New creates a tenant Client with the specified connection options.
 func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
 	conn, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
