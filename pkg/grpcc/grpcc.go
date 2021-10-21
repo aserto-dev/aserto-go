@@ -15,10 +15,12 @@ type Connection struct {
 	TenantID TenantID
 }
 
+const defaultConnectionTimeout time.Duration = time.Duration(5) * time.Second
+
 func NewConnection(ctx context.Context, opts ...ConnectionOption) (*Connection, error) {
 	const (
 		defaultInsecure = false
-		defaultTimeout  = time.Duration(5) * time.Second
+		defaultTimeout  = defaultConnectionTimeout
 	)
 
 	options := &ConnectionOptions{
