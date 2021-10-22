@@ -52,6 +52,6 @@ func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
 	}, err
 }
 
-func (client *Client) WrapContext(ctx context.Context) context.Context {
-	return client.conn.TenantID.WrapContext(ctx)
+func (client *Client) WithContext(ctx context.Context) context.Context {
+	return client.conn.TenantID.WithContext(ctx)
 }

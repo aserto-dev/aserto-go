@@ -9,7 +9,7 @@ import (
 
 type TenantID string
 
-func (id TenantID) WrapContext(ctx context.Context) context.Context {
+func (id TenantID) WithContext(ctx context.Context) context.Context {
 	return SetTenantContext(ctx, string(id))
 }
 
@@ -68,6 +68,6 @@ func WithAPIKeyAuth(key string) ConnectionOption {
 func WithTenantContext(tenantID string) ConnectionOption {
 	return func(options *ConnectionOptions) {
 		options.tenantID = TenantID(tenantID)
-		options.ctx = options.tenantID.WrapContext(options.ctx)
+		options.ctx = options.tenantID.WithContext(options.ctx)
 	}
 }
