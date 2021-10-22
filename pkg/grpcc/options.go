@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/aserto-dev/aserto-go/pkg/service"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -51,16 +52,16 @@ func WithCACertPath(path string) ConnectionOption {
 
 func WithTokenAuth(token string) ConnectionOption {
 	return func(options *ConnectionOptions) {
-		options.creds = &TokenAuth{
-			token: token,
+		options.creds = &service.TokenAuth{
+			Token: token,
 		}
 	}
 }
 
 func WithAPIKeyAuth(key string) ConnectionOption {
 	return func(options *ConnectionOptions) {
-		options.creds = &APIKeyAuth{
-			key: key,
+		options.creds = &service.APIKeyAuth{
+			Key: key,
 		}
 	}
 }

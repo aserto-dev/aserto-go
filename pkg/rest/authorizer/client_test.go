@@ -1,19 +1,27 @@
 package authorizer
 
 import (
+	"encoding/json"
 	"testing"
 )
 
 func TestNewDecisionResults(t *testing.T) {
-	decisions := []map[string]interface{}{
+	decisionsJson := `[
 		{
 			"decision": "allowed",
-			"is":       true,
+			"is":       true
 		},
 		{
 			"decision": "visible",
-			"is":       false,
-		},
+			"is":       false
+		}
+	]
+	`
+
+	var decisions []interface{}
+	err := json.Unmarshal([]byte(decisionsJson), &decisions)
+	if err != nil {
+		t.Error(err)
 	}
 
 	results, err := NewDecisionResults(decisions)

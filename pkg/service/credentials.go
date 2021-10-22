@@ -1,15 +1,14 @@
-package grpcc
+package service
 
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/pkg/service"
 	"google.golang.org/grpc/credentials"
 )
 
 // TokenAuth bearer token based authentication.
 type TokenAuth struct {
-	token string
+	Token string
 }
 
 // TokenAuth implements credentials.PerRPCCredentials.
@@ -17,13 +16,13 @@ var _ credentials.PerRPCCredentials = (*TokenAuth)(nil)
 
 func NewTokenAuth(token string) *TokenAuth {
 	return &TokenAuth{
-		token: token,
+		Token: token,
 	}
 }
 
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	return map[string]string{
-		service.Authorization: service.Bearer + " " + t.token,
+		Authorization: Bearer + " " + t.Token,
 	}, nil
 }
 
@@ -33,7 +32,7 @@ func (TokenAuth) RequireTransportSecurity() bool {
 
 // APIKeyAuth API key based authentication.
 type APIKeyAuth struct {
-	key string
+	Key string
 }
 
 // APIKeyAuth implements credentials.PerRPCCredentials.
@@ -41,13 +40,13 @@ var _ credentials.PerRPCCredentials = (*APIKeyAuth)(nil)
 
 func NewAPIKeyAuth(key string) *APIKeyAuth {
 	return &APIKeyAuth{
-		key: key,
+		Key: key,
 	}
 }
 
 func (k *APIKeyAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	return map[string]string{
-		service.Authorization: service.Basic + " " + k.key,
+		Authorization: Basic + " " + k.Key,
 	}, nil
 }
 

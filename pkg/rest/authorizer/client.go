@@ -10,8 +10,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-
-	"google.golang.org/grpc/credentials"
 )
 
 const defaultAuthorizer = "authorizer.prod.aserto.com"
@@ -46,17 +44,7 @@ func NewDecisionResults(jsonDecisions interface{}) (DecisionResults, error) {
 }
 
 type Authorizer interface {
-	Decide(ctx context.Context, string, decisions []string, identity, policyPath string, resource Resource) (DecisionResults, error)
-}
-
-type Options struct {
-	Credentials  credentials.PerRPCCredentials
-	Server       string
-	TenantID     string
-	PolicyID     string
-	PolicyPath   string
-	IdentityType string
-	Identity     string
+	Decide(ctx context.Context, params ...Params) (DecisionResults, error)
 }
 
 type RestAuthorizer struct {
@@ -78,29 +66,39 @@ func NewRestAuthorizer(opts Options) (*RestAuthorizer, error) {
 
 func (authz RestAuthorizer) Decide(
 	ctx context.Context,
-	decisions []string,
-	identity string,
-	policyPath string,
-	resource Resource,
+	params ...Param,
 ) (DecisionResults, error) {
-	url := fmt.Sprintf("https://%s/api/v1/authz/is", authz.options.Server)
+	args, err := authz.options.defaults.applyOverrides(params...)
+	if err != nil {
+		return nil, err
+	}
+	url := fmt.Sprintf("https://%s/api/v1/authz/is", authz.options.server)
 	body, err := json.Marshal(map[string]interface{}{
 		"identityContext": map[string]interface{}{
-			"type":     authz.options.IdentityType,
-			"identity": identity,
+			"type":     args.identityType,
+			"identity": args.identity,
 		},
 		"policyContext": map[string]interface{}{
-			"id":        authz.options.PolicyID,
-			"path":      policyPath,
-			"decisions": decisions,
+			"id":        args.policyID,
+			"path":      args.policyPath,
+			"decisions": args.decisions,
 		},
-		"resourceContext": map[string]interface{}(resource),
+		"resourceContext": map[string]interface{}(*args.resource),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return authz.postRequest(url, body)
+}
+
+func (authz RestAuthorizer) resolveParams(params ...Param) Params {
+	resolved := authz.options.defaults
+
+	for _, param := range params {
+		param(&resolved)
+	}
+	return resolved
 }
 
 func (authz RestAuthorizer) postRequest(url string, body []byte) (DecisionResults, error) {
@@ -155,13 +153,13 @@ func tryReadText(reader io.Reader) string {
 
 func (authz RestAuthorizer) addRequestHeaders(req *http.Request) (err error) {
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Aserto-Tenant-Id", authz.options.TenantID)
+	req.Header.Set("Aserto-Tenant-Id", authz.options.tenantID)
 	err = authz.addAuthenticationHeader(req)
 	return
 }
 
 func (authz RestAuthorizer) addAuthenticationHeader(req *http.Request) (err error) {
-	headerMap, err := authz.options.Credentials.GetRequestMetadata(context.Background())
+	headerMap, err := authz.options.credentials.GetRequestMetadata(context.Background())
 	if err == nil {
 		for key, val := range headerMap {
 			req.Header.Set(key, val)
