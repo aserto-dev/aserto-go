@@ -40,6 +40,7 @@ func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
 	}, err
 }
 
-func (client *Client) Context() context.Context {
-	return client.conn.Context
+// WrapContext returns a wrapped context that includes tenant information.
+func (client *Client) WrapContext(ctx context.Context) context.Context {
+	return client.conn.TenantID.WrapContext(ctx)
 }
