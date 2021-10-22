@@ -3,21 +3,22 @@ package grpcc
 import (
 	"context"
 
+	"github.com/aserto-dev/aserto-go/pkg/service"
 	"google.golang.org/grpc/metadata"
 )
 
 func SetTenantContext(ctx context.Context, tenantID string) context.Context {
-	return metadata.AppendToOutgoingContext(ctx, asertoTenantID, tenantID)
+	return metadata.AppendToOutgoingContext(ctx, service.AsertoTenantID, tenantID)
 }
 
 func SetAsertoAPIKey(ctx context.Context, key string) context.Context {
-	return metadata.AppendToOutgoingContext(ctx, authorization, authzBasicHeader(key))
+	return metadata.AppendToOutgoingContext(ctx, service.Authorization, authzBasicHeader(key))
 }
 
 func authzBasicHeader(key string) string {
-	return basic + " " + key
+	return service.Basic + " " + key
 }
 
 func SetAccountContext(ctx context.Context, accountID string) context.Context {
-	return metadata.AppendToOutgoingContext(ctx, asertoAccountID, accountID)
+	return metadata.AppendToOutgoingContext(ctx, service.AsertoAccountID, accountID)
 }

@@ -3,6 +3,7 @@ package grpcc
 import (
 	"context"
 
+	"github.com/aserto-dev/aserto-go/pkg/service"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -22,7 +23,7 @@ func NewTokenAuth(token string) *TokenAuth {
 
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	return map[string]string{
-		authorization: bearer + " " + t.token,
+		service.Authorization: service.Bearer + " " + t.token,
 	}, nil
 }
 
@@ -46,7 +47,7 @@ func NewAPIKeyAuth(key string) *APIKeyAuth {
 
 func (k *APIKeyAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	return map[string]string{
-		authorization: basic + " " + k.key,
+		service.Authorization: service.Basic + " " + k.key,
 	}, nil
 }
 
