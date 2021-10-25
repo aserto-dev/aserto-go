@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+
+	authz "github.com/aserto-dev/aserto-go/pkg/authorizer"
 )
 
-func ReadDecisions(reader io.Reader) (DecisionResults, error) {
+func ReadDecisions(reader io.Reader) (authz.DecisionResults, error) {
 	body, err := unmarshalObject(reader)
 	if err != nil {
 		return nil, err
@@ -16,7 +18,7 @@ func ReadDecisions(reader io.Reader) (DecisionResults, error) {
 	return unmarshalDecisionResults(body["decisions"])
 }
 
-func ReadDecisionTree(reader io.Reader) (*DecisionTree, error) {
+func ReadDecisionTree(reader io.Reader) (*authz.DecisionTree, error) {
 	body, err := unmarshalObject(reader)
 	if err != nil {
 		return nil, err
@@ -41,28 +43,28 @@ func unmarshalObject(reader io.Reader) (map[string]interface{}, error) {
 	return obj, nil
 }
 
-func unmarshalDecisionResults(jsonDecisions interface{}) (DecisionResults, error) {
+func unmarshalDecisionResults(jsonDecisions interface{}) (authz.DecisionResults, error) {
 	decisions, ok := jsonDecisions.([]interface{})
 	if !ok {
-		return nil, ErrUnexpectedJSONSchema
+		return nil, authz.ErrUnexpectedJSONSchema
 	}
 
-	results := DecisionResults{}
+	results := authz.DecisionResults{}
 
 	for _, d := range decisions {
 		decision, ok := d.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("%w: decision should be an object, found %v", ErrUnexpectedJSONSchema, d)
+			return nil, fmt.Errorf("%w: decision should be an object, found %v", authz.ErrUnexpectedJSONSchema, d)
 		}
 
 		name, ok := decision["decision"]
 		if !ok {
-			return nil, fmt.Errorf("%w: missing 'decision' key: %v", ErrUnexpectedJSONSchema, decision)
+			return nil, fmt.Errorf("%w: missing 'decision' key: %v", authz.ErrUnexpectedJSONSchema, decision)
 		}
 
 		is, ok := decision["is"]
 		if !ok {
-			return nil, fmt.Errorf("%w: missing 'is' key: %v", ErrUnexpectedJSONSchema, decision)
+			return nil, fmt.Errorf("%w: missing 'is' key: %v", authz.ErrUnexpectedJSONSchema, decision)
 		}
 
 		results[name.(string)] = is.(bool)
@@ -71,10 +73,10 @@ func unmarshalDecisionResults(jsonDecisions interface{}) (DecisionResults, error
 	return results, nil
 }
 
-func unmarshalDecisionTree(jsonTree interface{}) (*DecisionTree, error) {
+func unmarshalDecisionTree(jsonTree interface{}) (*authz.DecisionTree, error) {
 	tree, ok := jsonTree.(map[string]interface{})
 	if !ok {
-		return nil, ErrUnexpectedJSONSchema
+		return nil, authz.ErrUnexpectedJSONSchema
 	}
 
 	root, err := unmarshalStringMapValue(tree, "path_root")
@@ -84,22 +86,22 @@ func unmarshalDecisionTree(jsonTree interface{}) (*DecisionTree, error) {
 
 	path, ok := tree["path"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("%w: path", ErrUnexpectedJSONSchema)
+		return nil, fmt.Errorf("%w: path", authz.ErrUnexpectedJSONSchema)
 	}
 
-	return &DecisionTree{Root: root, Path: path}, nil
+	return &authz.DecisionTree{Root: root, Path: path}, nil
 }
 
 func unmarshalStringMapValue(obj map[string]interface{}, key string) (string, error) {
 	if _, ok := obj[key]; !ok {
-		return "", fmt.Errorf("%w: missing key '%s'", ErrUnexpectedJSONSchema, key)
+		return "", fmt.Errorf("%w: missing key '%s'", authz.ErrUnexpectedJSONSchema, key)
 	}
 
 	val, ok := obj[key].(string)
 	if !ok {
 		return "", fmt.Errorf(
 			"%w: unexpected value in '%s'. expected string, found '%v'",
-			ErrUnexpectedJSONSchema,
+			authz.ErrUnexpectedJSONSchema,
 			key,
 			obj[key],
 		)

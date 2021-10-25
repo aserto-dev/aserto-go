@@ -49,7 +49,3 @@ func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
 		Info:        info.NewInfoClient(conn.Conn),
 	}, err
 }
-
-func (client *Client) WithContext(ctx context.Context) context.Context {
-	return client.conn.TenantID.WithContext(ctx)
-}

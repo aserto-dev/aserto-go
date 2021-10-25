@@ -6,17 +6,17 @@ import (
 )
 
 type Options struct {
-	credentials credentials.PerRPCCredentials
-	server      string
-	tenantID    string
-	defaults    Params
+	Credentials credentials.PerRPCCredentials
+	Server      string
+	TenantID    string
+	Defaults    Params
 }
 
 type Option func(*Options)
 
 func WithTokenAuth(token string) Option {
 	return func(options *Options) {
-		options.credentials = &service.TokenAuth{
+		options.Credentials = &service.TokenAuth{
 			Token: token,
 		}
 	}
@@ -24,7 +24,7 @@ func WithTokenAuth(token string) Option {
 
 func WithAPIKeyAuth(key string) Option {
 	return func(options *Options) {
-		options.credentials = &service.APIKeyAuth{
+		options.Credentials = &service.APIKeyAuth{
 			Key: key,
 		}
 	}
@@ -32,12 +32,12 @@ func WithAPIKeyAuth(key string) Option {
 
 func WithServer(server string) Option {
 	return func(options *Options) {
-		options.server = server
+		options.Server = server
 	}
 }
 
 func WithTenantID(tenantID string) Option {
 	return func(options *Options) {
-		options.tenantID = tenantID
+		options.TenantID = tenantID
 	}
 }

@@ -6,88 +6,79 @@ import (
 )
 
 type Params struct {
-	policyID     *string
-	policyPath   *string
-	identityType *string
-	identity     *string
-	decisions    *[]string
-	resource     *Resource
+	PolicyID     *string
+	PolicyPath   *string
+	IdentityType IdentityType
+	Identity     *string
+	Decisions    *[]string
+	Resource     *Resource
 }
 
 type Param func(*Params)
 
-func NewParams(params ...Param) Params {
-	newParams := &Params{}
-	for _, param := range params {
-		param(newParams)
-	}
-
-	return *newParams
-}
-
 func WithPolicyID(policyID string) Param {
 	return func(params *Params) {
-		params.policyID = &policyID
+		params.PolicyID = &policyID
 	}
 }
 
 func WithPolicyPath(policyPath string) Param {
 	return func(params *Params) {
-		params.policyPath = &policyPath
+		params.PolicyPath = &policyPath
 	}
 }
 
-func WithIdentityType(identityType string) Param {
+func WithIdentityType(identityType IdentityType) Param {
 	return func(params *Params) {
-		params.identityType = &identityType
+		params.IdentityType = identityType
 	}
 }
 
 func WithIdentity(identity string) Param {
 	return func(params *Params) {
-		params.identity = &identity
+		params.Identity = &identity
 	}
 }
 
 func WithDecisions(decisions []string) Param {
 	return func(params *Params) {
-		params.decisions = &decisions
+		params.Decisions = &decisions
 	}
 }
 
 func WithResource(resource Resource) Param {
 	return func(params *Params) {
-		params.resource = &resource
+		params.Resource = &resource
 	}
 }
 
-func (params *Params) applyOverrides(overrides ...Param) (*Params, error) {
+func (params *Params) Override(overrides ...Param) (*Params, error) {
 	overridden := *params
 	for _, override := range overrides {
 		override(&overridden)
 	}
 
-	if err := params.validateString(overridden.policyID); err != nil {
+	if err := params.validateString(overridden.PolicyID); err != nil {
 		return nil, fmt.Errorf("%w: policyID", err)
 	}
 
-	if err := params.validateString(overridden.policyPath); err != nil {
+	if err := params.validateString(overridden.PolicyPath); err != nil {
 		return nil, fmt.Errorf("%w: policyPath", err)
 	}
 
-	if err := params.validateString(overridden.identityType); err != nil {
-		return nil, fmt.Errorf("%w: identityType", err)
+	if params.IdentityType == IdentityTypeUnknown {
+		return nil, fmt.Errorf("%w: identityType", errMissingParam)
 	}
 
-	if err := params.validateString(overridden.identity); err != nil {
+	if err := params.validateString(overridden.Identity); err != nil {
 		return nil, fmt.Errorf("%w: identity", err)
 	}
 
-	if err := params.validateStringSlice(overridden.decisions); err != nil {
+	if err := params.validateStringSlice(overridden.Decisions); err != nil {
 		return nil, fmt.Errorf("%w: decisions", err)
 	}
 
-	if overridden.resource == nil {
+	if overridden.Resource == nil {
 		return nil, fmt.Errorf("%w: resource", errMissingParam)
 	}
 

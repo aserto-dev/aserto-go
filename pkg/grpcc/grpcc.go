@@ -24,7 +24,6 @@ func NewConnection(ctx context.Context, opts ...ConnectionOption) (*Connection, 
 	)
 
 	options := &ConnectionOptions{
-		ctx:      ctx,
 		insecure: defaultInsecure,
 		timeout:  defaultTimeout,
 	}
