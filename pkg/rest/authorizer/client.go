@@ -21,7 +21,7 @@ var _ Authorizer = (*RestAuthorizer)(nil)
 
 var ErrHTTPFailure = errors.New("http error response")
 
-func NewRestAuthorizer(opts *Options) (*RestAuthorizer, error) {
+func NewRestAuthorizer(opts ...Option) (*RestAuthorizer, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -30,7 +30,19 @@ func NewRestAuthorizer(opts *Options) (*RestAuthorizer, error) {
 		},
 	}
 
-	return &RestAuthorizer{options: *opts, client: client}, nil
+	options := &Options{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	return &RestAuthorizer{options: *options, client: client}, nil
+}
+
+func (authz *RestAuthorizer) SetDefaults(params ...Param) {
+	for _, param := range params {
+		param(&authz.options.defaults)
+	}
 }
 
 func (authz *RestAuthorizer) Decide(
