@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewDecisionResults(t *testing.T) {
-	decisionsJson := `[
+	decisionsJSON := `[
 		{
 			"decision": "allowed",
 			"is":       true
@@ -19,7 +19,8 @@ func TestNewDecisionResults(t *testing.T) {
 	`
 
 	var decisions []interface{}
-	err := json.Unmarshal([]byte(decisionsJson), &decisions)
+
+	err := json.Unmarshal([]byte(decisionsJSON), &decisions)
 	if err != nil {
 		t.Error(err)
 	}
@@ -31,7 +32,6 @@ func TestNewDecisionResults(t *testing.T) {
 
 	t.Run("test allowed", resultsContainDecision(results, "allowed", true))
 	t.Run("test not visible", resultsContainDecision(results, "visible", false))
-
 }
 
 func resultsContainDecision(results DecisionResults, rule string, expectedDecision bool) func(*testing.T) {
@@ -41,7 +41,7 @@ func resultsContainDecision(results DecisionResults, rule string, expectedDecisi
 		} else if decision != expectedDecision {
 			t.Errorf("unexpected decision for '%s': %v", rule, decision)
 		}
-
 	}
+
 	return check
 }

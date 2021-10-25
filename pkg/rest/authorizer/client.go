@@ -5,13 +5,12 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 )
-
-const defaultAuthorizer = "authorizer.prod.aserto.com"
 
 type RestAuthorizer struct {
 	options Options
@@ -20,7 +19,9 @@ type RestAuthorizer struct {
 
 var _ Authorizer = (*RestAuthorizer)(nil)
 
-func NewRestAuthorizer(opts Options) (*RestAuthorizer, error) {
+var ErrHTTPFailure = errors.New("http error response")
+
+func NewRestAuthorizer(opts *Options) (*RestAuthorizer, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -29,10 +30,10 @@ func NewRestAuthorizer(opts Options) (*RestAuthorizer, error) {
 		},
 	}
 
-	return &RestAuthorizer{options: opts, client: client}, nil
+	return &RestAuthorizer{options: *opts, client: client}, nil
 }
 
-func (authz RestAuthorizer) Decide(
+func (authz *RestAuthorizer) Decide(
 	ctx context.Context,
 	params ...Param,
 ) (DecisionResults, error) {
@@ -40,6 +41,7 @@ func (authz RestAuthorizer) Decide(
 	if err != nil {
 		return nil, err
 	}
+
 	url := fmt.Sprintf("https://%s/api/v1/authz/is", authz.options.server)
 	body, err := json.Marshal(map[string]interface{}{
 		"identityContext": map[string]interface{}{
@@ -53,19 +55,22 @@ func (authz RestAuthorizer) Decide(
 		},
 		"resourceContext": map[string]interface{}(*args.resource),
 	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := authz.postRequest(url, body)
+	resp, err := authz.postRequest(ctx, url, body)
 	if err != nil {
 		return nil, err
 	}
+
 	defer resp.Body.Close()
+
 	return ReadDecisions(resp.Body)
 }
 
-func (authz RestAuthorizer) DecisionTree(
+func (authz *RestAuthorizer) DecisionTree(
 	ctx context.Context,
 	sep PathSeparator,
 	params ...Param,
@@ -91,30 +96,23 @@ func (authz RestAuthorizer) DecisionTree(
 			"pathSeparator": sep,
 		},
 	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := authz.postRequest(url, body)
+	resp, err := authz.postRequest(ctx, url, body)
 	if err != nil {
 		return nil, err
 	}
 
 	defer resp.Body.Close()
+
 	return ReadDecisionTree(resp.Body)
 }
 
-func (authz RestAuthorizer) resolveParams(params ...Param) Params {
-	resolved := authz.options.defaults
-
-	for _, param := range params {
-		param(&resolved)
-	}
-	return resolved
-}
-
-func (authz RestAuthorizer) postRequest(url string, body []byte) (*http.Response, error) {
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer([]byte(body)))
+func (authz *RestAuthorizer) postRequest(ctx context.Context, url string, body []byte) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -127,31 +125,37 @@ func (authz RestAuthorizer) postRequest(url string, body []byte) (*http.Response
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
+
 		return nil,
-			fmt.Errorf("http request failed. status: %s. body: %s",
+			fmt.Errorf("%w: http request failed. status: %s. body: %s",
+				ErrHTTPFailure,
 				resp.Status,
 				tryReadText(resp.Body),
 			)
 	}
+
 	return resp, nil
 }
 
-func (authz RestAuthorizer) addRequestHeaders(req *http.Request) (err error) {
+func (authz *RestAuthorizer) addRequestHeaders(req *http.Request) (err error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Aserto-Tenant-Id", authz.options.tenantID)
 	err = authz.addAuthenticationHeader(req)
+
 	return
 }
 
-func (authz RestAuthorizer) addAuthenticationHeader(req *http.Request) (err error) {
+func (authz *RestAuthorizer) addAuthenticationHeader(req *http.Request) (err error) {
 	headerMap, err := authz.options.credentials.GetRequestMetadata(context.Background())
 	if err == nil {
 		for key, val := range headerMap {
 			req.Header.Set(key, val)
 		}
 	}
+
 	return
 }
 
@@ -160,5 +164,6 @@ func tryReadText(reader io.Reader) string {
 	if err != nil {
 		return ""
 	}
+
 	return string(content)
 }

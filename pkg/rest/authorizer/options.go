@@ -22,6 +22,7 @@ func NewOptions(defaultParams Params, opts ...Option) Options {
 	for _, opt := range opts {
 		opt(options)
 	}
+
 	return *options
 }
 
@@ -69,6 +70,7 @@ func NewParams(params ...Param) Params {
 	for _, param := range params {
 		param(newParams)
 	}
+
 	return *newParams
 }
 
@@ -80,52 +82,65 @@ func (params *Params) applyOverrides(overrides ...Param) (*Params, error) {
 
 	if err := params.validateString(overridden.policyID); err != nil {
 		return nil, fmt.Errorf("%w: policyID", err)
-	} else if err := params.validateString(overridden.policyPath); err != nil {
+	}
+
+	if err := params.validateString(overridden.policyPath); err != nil {
 		return nil, fmt.Errorf("%w: policyPath", err)
-	} else if err := params.validateString(overridden.identityType); err != nil {
+	}
+
+	if err := params.validateString(overridden.identityType); err != nil {
 		return nil, fmt.Errorf("%w: identityType", err)
-	} else if err := params.validateString(overridden.identity); err != nil {
+	}
+
+	if err := params.validateString(overridden.identity); err != nil {
 		return nil, fmt.Errorf("%w: identity", err)
-	} else if err := params.validateStringSlice(overridden.decisions); err != nil {
+	}
+
+	if err := params.validateStringSlice(overridden.decisions); err != nil {
 		return nil, fmt.Errorf("%w: decisions", err)
-	} else if overridden.resource == nil {
-		return nil, errors.New("missing parameter: resource.")
+	}
+
+	if overridden.resource == nil {
+		return nil, fmt.Errorf("%w: resource", errMissingParam)
 	}
 
 	return &overridden, nil
 }
 
 var (
-	emptyParamError   error = errors.New("empty parameter")
-	missingParamError error = errors.New("missing parameter")
+	errEmptyParam   = errors.New("empty parameter")
+	errMissingParam = errors.New("missing parameter")
 )
 
 func (params *Params) validateString(val *string) error {
 	if val == nil {
-		return missingParamError
+		return errMissingParam
 	}
+
 	if *val == "" {
-		return emptyParamError
+		return errEmptyParam
 	}
+
 	return nil
 }
 
 func (params *Params) validateStringSlice(val *[]string) error {
 	if val == nil {
-		return missingParamError
+		return errMissingParam
 	}
+
 	if len(*val) == 0 {
-		return emptyParamError
+		return errEmptyParam
 	}
+
 	for _, elem := range *val {
 		if elem == "" {
-			return fmt.Errorf("%w: empty element %v", emptyParamError, val)
+			return fmt.Errorf("%w: empty element %v", errEmptyParam, val)
 		}
 	}
+
 	return nil
 }
-
-func (params *Params) validateResource()
 
 func WithPolicyID(policyID string) Param {
 	return func(params *Params) {

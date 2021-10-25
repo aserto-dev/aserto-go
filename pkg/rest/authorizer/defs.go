@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-var UnexpectedJSONSchema error = errors.New("unexpected JSON schema")
+var ErrUnexpectedJSONSchema = errors.New("unexpected JSON schema")
 
 type Resource map[string]interface{}
 
@@ -14,9 +14,9 @@ type DecisionResults map[string]bool
 type PathSeparator int32
 
 const (
-	PathSeparator_UNKNOWN PathSeparator = 0 // Value not set.
-	PathSeparator_DOT     PathSeparator = 1 // Dot "." path separator
-	PathSeparator_SLASH   PathSeparator = 2 // Slash "/" path separtor
+	PathseparatorUnknown PathSeparator = 0 // Value not set.
+	PathseparatorDot     PathSeparator = 1 // Dot "." path separator
+	PathseparatorSlash   PathSeparator = 2 // Slash "/" path separtor
 )
 
 type DecisionTree struct {
