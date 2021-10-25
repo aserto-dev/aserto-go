@@ -114,7 +114,8 @@ linters:
     - unused
     - varcheck
     - whitespace
-    - wsl
+
+    #- wsl  # conflicts with gofumpt
 
 issues:
   # List of regexps of issue texts to exclude, empty list by default.

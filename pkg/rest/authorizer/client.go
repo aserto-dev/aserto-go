@@ -55,7 +55,6 @@ func (authz *RestAuthorizer) Decide(
 		},
 		"resourceContext": map[string]interface{}(*args.resource),
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +95,6 @@ func (authz *RestAuthorizer) DecisionTree(
 			"pathSeparator": sep,
 		},
 	})
-
 	if err != nil {
 		return nil, err
 	}
