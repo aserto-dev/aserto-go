@@ -2,6 +2,7 @@ package authorizer
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/aserto-dev/aserto-go/pkg/service"
 	"google.golang.org/grpc/credentials"
@@ -77,22 +78,54 @@ func (params *Params) applyOverrides(overrides ...Param) (*Params, error) {
 		override(&overridden)
 	}
 
-	if overridden.policyID == nil {
-		return nil, errors.New("missing policy ID. must be set using WithPolicyID()")
-	} else if overridden.policyPath == nil {
-		return nil, errors.New("missing policy path. must be set using WithPolicyPath")
-	} else if overridden.identityType == nil {
-		return nil, errors.New("missing identity type. must be set using WithIdentityType")
-	} else if overridden.identity == nil {
-		return nil, errors.New("missing identity. must be set using WithIdentity")
-	} else if overridden.decisions == nil {
-		return nil, errors.New("missing decisions. must be set using WithDecisions")
+	if err := params.validateString(overridden.policyID); err != nil {
+		return nil, fmt.Errorf("%w: policyID", err)
+	} else if err := params.validateString(overridden.policyPath); err != nil {
+		return nil, fmt.Errorf("%w: policyPath", err)
+	} else if err := params.validateString(overridden.identityType); err != nil {
+		return nil, fmt.Errorf("%w: identityType", err)
+	} else if err := params.validateString(overridden.identity); err != nil {
+		return nil, fmt.Errorf("%w: identity", err)
+	} else if err := params.validateStringSlice(overridden.decisions); err != nil {
+		return nil, fmt.Errorf("%w: decisions", err)
 	} else if overridden.resource == nil {
-		return nil, errors.New("missing resource. must be set using WithResource")
+		return nil, errors.New("missing parameter: resource.")
 	}
 
 	return &overridden, nil
 }
+
+var (
+	emptyParamError   error = errors.New("empty parameter")
+	missingParamError error = errors.New("missing parameter")
+)
+
+func (params *Params) validateString(val *string) error {
+	if val == nil {
+		return missingParamError
+	}
+	if *val == "" {
+		return emptyParamError
+	}
+	return nil
+}
+
+func (params *Params) validateStringSlice(val *[]string) error {
+	if val == nil {
+		return missingParamError
+	}
+	if len(*val) == 0 {
+		return emptyParamError
+	}
+	for _, elem := range *val {
+		if elem == "" {
+			return fmt.Errorf("%w: empty element %v", emptyParamError, val)
+		}
+	}
+	return nil
+}
+
+func (params *Params) validateResource()
 
 func WithPolicyID(policyID string) Param {
 	return func(params *Params) {

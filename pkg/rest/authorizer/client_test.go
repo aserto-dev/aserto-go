@@ -24,7 +24,7 @@ func TestNewDecisionResults(t *testing.T) {
 		t.Error(err)
 	}
 
-	results, err := NewDecisionResults(decisions)
+	results, err := unmarshalDecisionResults(decisions)
 	if err != nil {
 		t.Error(err)
 	}
