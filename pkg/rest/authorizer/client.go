@@ -39,10 +39,11 @@ func NewRestAuthorizer(opts ...Option) (*RestAuthorizer, error) {
 	return &RestAuthorizer{options: *options, client: client}, nil
 }
 
-func (authz *RestAuthorizer) SetDefaults(params ...Param) {
+func (authz *RestAuthorizer) Options(params ...Param) error {
 	for _, param := range params {
 		param(&authz.options.defaults)
 	}
+	return nil
 }
 
 func (authz *RestAuthorizer) Decide(

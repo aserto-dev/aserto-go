@@ -26,5 +26,10 @@ type DecisionTree struct {
 
 type Authorizer interface {
 	Decide(ctx context.Context, params ...Param) (DecisionResults, error)
+
 	DecisionTree(ctx context.Context, sep PathSeparator, params ...Param) (*DecisionTree, error)
+
+	// Options set default values for authorization parameters.
+	// Values set using .Options() can me omitted from subsequent authorizer calls.
+	Options(params ...Param) error
 }
