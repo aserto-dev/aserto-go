@@ -11,41 +11,51 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	authz "github.com/aserto-dev/aserto-go/pkg/authorizer"
+	"github.com/aserto-dev/aserto-go"
 )
 
 type RestAuthorizer struct {
-	options  authz.ConnectionOptions
+	options  aserto.ConnectionOptions
 	client   *http.Client
-	defaults authz.Params
+	defaults aserto.AuthorizerParams
 }
 
-var _ authz.Authorizer = (*RestAuthorizer)(nil)
+var _ aserto.Authorizer = (*RestAuthorizer)(nil)
 
 var ErrHTTPFailure = errors.New("http error response")
 
-func NewRestAuthorizer(opts ...authz.ConnectionOption) (*RestAuthorizer, error) {
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			},
-		},
-	}
-
-	options := &authz.ConnectionOptions{}
+func NewRestAuthorizer(opts ...aserto.ConnectionOption) (*RestAuthorizer, error) {
+	options := &aserto.ConnectionOptions{}
 
 	for _, opt := range opts {
 		opt(options)
 	}
 
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: ConfigureTLS(options),
+		},
+	}
+
 	return &RestAuthorizer{options: *options, client: client}, nil
+}
+
+func ConfigureTLS(options *aserto.ConnectionOptions) *tls.Config {
+	config := &tls.Config{
+		MinVersion: tls.VersionTLS12,
+	}
+
+	if options.Insecure {
+		config.InsecureSkipVerify = true
+	}
+
+	return config
 }
 
 func (authorizer *RestAuthorizer) Decide(
 	ctx context.Context,
-	params ...authz.Param,
-) (authz.DecisionResults, error) {
+	params ...aserto.AuthorizerParam,
+) (aserto.DecisionResults, error) {
 	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
 		return nil, err
@@ -80,9 +90,9 @@ func (authorizer *RestAuthorizer) Decide(
 
 func (authorizer *RestAuthorizer) DecisionTree(
 	ctx context.Context,
-	sep authz.PathSeparator,
-	params ...authz.Param,
-) (*authz.DecisionTree, error) {
+	sep aserto.PathSeparator,
+	params ...aserto.AuthorizerParam,
+) (*aserto.DecisionTree, error) {
 	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
 		return nil, err
@@ -118,7 +128,7 @@ func (authorizer *RestAuthorizer) DecisionTree(
 	return ReadDecisionTree(resp.Body)
 }
 
-func (authorizer *RestAuthorizer) Options(params ...authz.Param) error {
+func (authorizer *RestAuthorizer) Options(params ...aserto.AuthorizerParam) error {
 	for _, param := range params {
 		param(&authorizer.defaults)
 	}

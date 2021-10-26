@@ -1,3 +1,3 @@
-# aserto-go
+# Aserto Go SDK
 
-Aserto Go Client SDK
+

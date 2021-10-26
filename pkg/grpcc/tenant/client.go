@@ -3,7 +3,7 @@ package tenant
 import (
 	"context"
 
-	authz "github.com/aserto-dev/aserto-go/pkg/authorizer"
+	"github.com/aserto-dev/aserto-go"
 	"github.com/aserto-dev/aserto-go/pkg/grpcc"
 
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
@@ -32,7 +32,7 @@ type Client struct {
 }
 
 // New creates a tenant Client with the specified connection options.
-func New(ctx context.Context, opts ...authz.ConnectionOption) (*Client, error) {
+func New(ctx context.Context, opts ...aserto.ConnectionOption) (*Client, error) {
 	conn, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "create grpc client failed")

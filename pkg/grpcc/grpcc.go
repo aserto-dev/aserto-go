@@ -9,23 +9,23 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	authz "github.com/aserto-dev/aserto-go/pkg/authorizer"
+	"github.com/aserto-dev/aserto-go"
 )
 
 type Connection struct {
 	Conn     *grpc.ClientConn
-	TenantID authz.TenantID
+	TenantID aserto.TenantID
 }
 
 const defaultConnectionTimeout time.Duration = time.Duration(5) * time.Second
 
-func NewConnection(ctx context.Context, opts ...authz.ConnectionOption) (*Connection, error) {
+func NewConnection(ctx context.Context, opts ...aserto.ConnectionOption) (*Connection, error) {
 	const (
 		defaultInsecure = false
 		defaultTimeout  = defaultConnectionTimeout
 	)
 
-	options := &authz.ConnectionOptions{
+	options := &aserto.ConnectionOptions{
 		Insecure: defaultInsecure,
 		Timeout:  defaultTimeout,
 	}

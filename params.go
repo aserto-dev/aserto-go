@@ -1,11 +1,11 @@
-package authorizer
+package aserto
 
 import (
 	"errors"
 	"fmt"
 )
 
-type Params struct {
+type AuthorizerParams struct {
 	PolicyID     *string
 	PolicyPath   *string
 	IdentityType IdentityType
@@ -14,45 +14,45 @@ type Params struct {
 	Resource     *Resource
 }
 
-type Param func(*Params)
+type AuthorizerParam func(*AuthorizerParams)
 
-func WithPolicyID(policyID string) Param {
-	return func(params *Params) {
+func WithPolicyID(policyID string) AuthorizerParam {
+	return func(params *AuthorizerParams) {
 		params.PolicyID = &policyID
 	}
 }
 
-func WithPolicyPath(policyPath string) Param {
-	return func(params *Params) {
+func WithPolicyPath(policyPath string) AuthorizerParam {
+	return func(params *AuthorizerParams) {
 		params.PolicyPath = &policyPath
 	}
 }
 
-func WithIdentityType(identityType IdentityType) Param {
-	return func(params *Params) {
+func WithIdentityType(identityType IdentityType) AuthorizerParam {
+	return func(params *AuthorizerParams) {
 		params.IdentityType = identityType
 	}
 }
 
-func WithIdentity(identity string) Param {
-	return func(params *Params) {
+func WithIdentity(identity string) AuthorizerParam {
+	return func(params *AuthorizerParams) {
 		params.Identity = &identity
 	}
 }
 
-func WithDecisions(decisions []string) Param {
-	return func(params *Params) {
+func WithDecisions(decisions []string) AuthorizerParam {
+	return func(params *AuthorizerParams) {
 		params.Decisions = &decisions
 	}
 }
 
-func WithResource(resource Resource) Param {
-	return func(params *Params) {
+func WithResource(resource Resource) AuthorizerParam {
+	return func(params *AuthorizerParams) {
 		params.Resource = &resource
 	}
 }
 
-func (params *Params) Override(overrides ...Param) (*Params, error) {
+func (params *AuthorizerParams) Override(overrides ...AuthorizerParam) (*AuthorizerParams, error) {
 	overridden := *params
 	for _, override := range overrides {
 		override(&overridden)
@@ -90,7 +90,7 @@ var (
 	errMissingParam = errors.New("missing parameter")
 )
 
-func (params *Params) validateString(val *string) error {
+func (params *AuthorizerParams) validateString(val *string) error {
 	if val == nil {
 		return errMissingParam
 	}
@@ -102,7 +102,7 @@ func (params *Params) validateString(val *string) error {
 	return nil
 }
 
-func (params *Params) validateStringSlice(val *[]string) error {
+func (params *AuthorizerParams) validateStringSlice(val *[]string) error {
 	if val == nil {
 		return errMissingParam
 	}

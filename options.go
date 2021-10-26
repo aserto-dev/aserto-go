@@ -1,4 +1,4 @@
-package authorizer
+package aserto
 
 import (
 	"context"
