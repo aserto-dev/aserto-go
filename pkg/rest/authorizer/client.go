@@ -15,15 +15,16 @@ import (
 )
 
 type RestAuthorizer struct {
-	options authz.Options
-	client  *http.Client
+	options  authz.ConnectionOptions
+	client   *http.Client
+	defaults authz.Params
 }
 
 var _ authz.Authorizer = (*RestAuthorizer)(nil)
 
 var ErrHTTPFailure = errors.New("http error response")
 
-func NewRestAuthorizer(opts ...authz.Option) (*RestAuthorizer, error) {
+func NewRestAuthorizer(opts ...authz.ConnectionOption) (*RestAuthorizer, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -32,7 +33,7 @@ func NewRestAuthorizer(opts ...authz.Option) (*RestAuthorizer, error) {
 		},
 	}
 
-	options := &authz.Options{}
+	options := &authz.ConnectionOptions{}
 
 	for _, opt := range opts {
 		opt(options)
@@ -45,12 +46,12 @@ func (authorizer *RestAuthorizer) Decide(
 	ctx context.Context,
 	params ...authz.Param,
 ) (authz.DecisionResults, error) {
-	args, err := authorizer.options.Defaults.Override(params...)
+	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://%s/api/v1/authz/is", authorizer.options.Server)
+	url := fmt.Sprintf("https://%s/api/v1/authz/is", authorizer.options.Address)
 	body, err := json.Marshal(map[string]interface{}{
 		"identityContext": map[string]interface{}{
 			"type":     args.IdentityType,
@@ -82,12 +83,12 @@ func (authorizer *RestAuthorizer) DecisionTree(
 	sep authz.PathSeparator,
 	params ...authz.Param,
 ) (*authz.DecisionTree, error) {
-	args, err := authorizer.options.Defaults.Override(params...)
+	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("https://%s/api/v1/authz/decisiontree", authorizer.options.Server)
+	url := fmt.Sprintf("https://%s/api/v1/authz/decisiontree", authorizer.options.Address)
 	body, err := json.Marshal(map[string]interface{}{
 		"identityContext": map[string]interface{}{
 			"type":     args.IdentityType,
@@ -119,7 +120,7 @@ func (authorizer *RestAuthorizer) DecisionTree(
 
 func (authorizer *RestAuthorizer) Options(params ...authz.Param) error {
 	for _, param := range params {
-		param(&authorizer.options.Defaults)
+		param(&authorizer.defaults)
 	}
 	return nil
 }
@@ -155,14 +156,14 @@ func (authorizer *RestAuthorizer) postRequest(ctx context.Context, url string, b
 
 func (authorizer *RestAuthorizer) addRequestHeaders(req *http.Request) (err error) {
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Aserto-Tenant-Id", authorizer.options.TenantID)
+	req.Header.Set("Aserto-Tenant-Id", string(authorizer.options.TenantID))
 	err = authorizer.addAuthenticationHeader(req)
 
 	return
 }
 
 func (authorizer *RestAuthorizer) addAuthenticationHeader(req *http.Request) (err error) {
-	headerMap, err := authorizer.options.Credentials.GetRequestMetadata(context.Background())
+	headerMap, err := authorizer.options.Creds.GetRequestMetadata(context.Background())
 	if err == nil {
 		for key, val := range headerMap {
 			req.Header.Set(key, val)

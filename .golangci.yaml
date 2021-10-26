@@ -94,7 +94,6 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - lll
     - misspell
     - nakedret
     - nestif
@@ -116,6 +115,7 @@ linters:
     - whitespace
 
     #- wsl  # conflicts with gofumpt
+    #- lll  # line length
 
 issues:
   # List of regexps of issue texts to exclude, empty list by default.

@@ -12,8 +12,6 @@ import (
 	dir "github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
 	policy "github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
-
-	"github.com/pkg/errors"
 )
 
 // Client gRPC connection.
@@ -26,10 +24,10 @@ type Client struct {
 }
 
 // New creates an authorizer Client with the specified connection options.
-func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
+func New(ctx context.Context, opts ...defs.ConnectionOption) (*Client, error) {
 	connection, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
-		return nil, errors.Wrap(err, "create grpc client failed")
+		return nil, err
 	}
 
 	return &Client{
@@ -42,18 +40,31 @@ func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
 }
 
 type GRPCAuthorizer struct {
-	options defs.Options
-	conn    *grpcc.Connection
-	client  authz.AuthorizerClient
+	client   authz.AuthorizerClient
+	conn     *grpcc.Connection
+	defaults defs.Params
 }
 
 var _ defs.Authorizer = (*GRPCAuthorizer)(nil)
+
+func NewGRPCAuthorizer(ctx context.Context, opts ...defs.ConnectionOption) (*GRPCAuthorizer, error) {
+	connection, err := grpcc.NewConnection(ctx, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GRPCAuthorizer{
+		client:   authz.NewAuthorizerClient(connection.Conn),
+		conn:     connection,
+		defaults: defs.Params{},
+	}, nil
+}
 
 func (authorizer *GRPCAuthorizer) Decide(
 	ctx context.Context,
 	params ...defs.Param,
 ) (defs.DecisionResults, error) {
-	args, err := authorizer.options.Defaults.Override(params...)
+	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +105,7 @@ func (authorizer *GRPCAuthorizer) DecisionTree(
 	sep defs.PathSeparator,
 	params ...defs.Param,
 ) (*defs.DecisionTree, error) {
-	args, err := authorizer.options.Defaults.Override(params...)
+	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +140,7 @@ func (authorizer *GRPCAuthorizer) DecisionTree(
 
 func (authorizer *GRPCAuthorizer) Options(params ...defs.Param) error {
 	for _, param := range params {
-		param(&authorizer.options.Defaults)
+		param(&authorizer.defaults)
 	}
 	return nil
 }
