@@ -3,8 +3,8 @@ package authorizer
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go"
-	"github.com/aserto-dev/aserto-go/pkg/grpcc"
+	"github.com/aserto-dev/aserto-go/grpcc"
+	"github.com/aserto-dev/aserto-go/options"
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	dir "github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
@@ -22,7 +22,7 @@ type Client struct {
 }
 
 // New creates an authorizer Client with the specified connection options.
-func New(ctx context.Context, opts ...aserto.ConnectionOption) (*Client, error) {
+func New(ctx context.Context, opts ...options.ConnectionOption) (*Client, error) {
 	connection, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, err

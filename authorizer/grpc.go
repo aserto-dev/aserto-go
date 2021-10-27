@@ -3,8 +3,9 @@ package authorizer
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go"
-	"github.com/aserto-dev/aserto-go/pkg/grpcc"
+	ctxt "github.com/aserto-dev/aserto-go/context"
+	"github.com/aserto-dev/aserto-go/grpcc"
+	"github.com/aserto-dev/aserto-go/options"
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
@@ -14,28 +15,28 @@ import (
 type GRPCAuthorizer struct {
 	client   authz.AuthorizerClient
 	conn     *grpcc.Connection
-	defaults aserto.AuthorizerParams
+	defaults AuthorizerParams
 }
 
-var _ aserto.Authorizer = (*GRPCAuthorizer)(nil)
+var _ Authorizer = (*GRPCAuthorizer)(nil)
 
-func NewGRPCAuthorizer(ctx context.Context, opts ...aserto.ConnectionOption) (*GRPCAuthorizer, error) {
-	connection, err := grpcc.NewConnection(ctx, opts...)
+func NewGRPCAuthorizer(ctx context.Context, opts ...options.ConnectionOption) (Authorizer, error) {
+	con, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
 
 	return &GRPCAuthorizer{
-		client:   authz.NewAuthorizerClient(connection.Conn),
-		conn:     connection,
-		defaults: aserto.AuthorizerParams{},
+		client:   authz.NewAuthorizerClient(con.Conn),
+		conn:     con,
+		defaults: AuthorizerParams{},
 	}, nil
 }
 
 func (authorizer *GRPCAuthorizer) Decide(
 	ctx context.Context,
-	params ...aserto.AuthorizerParam,
-) (aserto.DecisionResults, error) {
+	params ...AuthorizerParam,
+) (DecisionResults, error) {
 	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func (authorizer *GRPCAuthorizer) Decide(
 	}
 
 	resp, err := authorizer.client.Is(
-		aserto.WithTenantContext(ctx, string(authorizer.conn.TenantID)),
+		ctxt.SetTenantContext(ctx, authorizer.conn.TenantID),
 		&authz.IsRequest{
 			PolicyContext: &api.PolicyContext{
 				Id:        *args.PolicyID,
@@ -65,7 +66,7 @@ func (authorizer *GRPCAuthorizer) Decide(
 		return nil, err
 	}
 
-	results := aserto.DecisionResults{}
+	results := DecisionResults{}
 	for _, decision := range resp.Decisions {
 		results[decision.Decision] = decision.Is
 	}
@@ -74,9 +75,9 @@ func (authorizer *GRPCAuthorizer) Decide(
 
 func (authorizer *GRPCAuthorizer) DecisionTree(
 	ctx context.Context,
-	sep aserto.PathSeparator,
-	params ...aserto.AuthorizerParam,
-) (*aserto.DecisionTree, error) {
+	sep PathSeparator,
+	params ...AuthorizerParam,
+) (*DecisionTree, error) {
 	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
 		return nil, err
@@ -107,10 +108,10 @@ func (authorizer *GRPCAuthorizer) DecisionTree(
 		return nil, err
 	}
 
-	return &aserto.DecisionTree{Root: resp.PathRoot, Path: resp.Path.AsMap()}, nil
+	return &DecisionTree{Root: resp.PathRoot, Path: resp.Path.AsMap()}, nil
 }
 
-func (authorizer *GRPCAuthorizer) Options(params ...aserto.AuthorizerParam) error {
+func (authorizer *GRPCAuthorizer) Options(params ...AuthorizerParam) error {
 	for _, param := range params {
 		param(&authorizer.defaults)
 	}

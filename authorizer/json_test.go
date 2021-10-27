@@ -4,8 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aserto-dev/aserto-go"
-	"github.com/aserto-dev/aserto-go/pkg/rest/authorizer"
+	"github.com/aserto-dev/aserto-go/authorizer"
 )
 
 func TestReadDecisions(t *testing.T) {
@@ -31,7 +30,7 @@ func TestReadDecisions(t *testing.T) {
 	t.Run("not visible", resultsContainDecision(results, "visible", false))
 }
 
-func resultsContainDecision(results aserto.DecisionResults, rule string, expectedDecision bool) func(*testing.T) {
+func resultsContainDecision(results authorizer.DecisionResults, rule string, expectedDecision bool) func(*testing.T) {
 	check := func(t *testing.T) {
 		if decision, ok := results[rule]; !ok {
 			t.Errorf("results missing decision for '%s'", rule)

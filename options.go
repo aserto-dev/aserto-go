@@ -1,76 +1,56 @@
 package aserto
 
 import (
-	"context"
 	"time"
 
-	"github.com/aserto-dev/aserto-go/pkg/service"
-	"google.golang.org/grpc/credentials"
+	opts "github.com/aserto-dev/aserto-go/options"
+	"github.com/aserto-dev/aserto-go/service"
 )
 
-type TenantID string
-
-func (id TenantID) WithContext(ctx context.Context) context.Context {
-	return SetTenantContext(ctx, string(id))
-}
-
-func WithTenantContext(ctx context.Context, tenantID string) context.Context {
-	return TenantID(tenantID).WithContext(ctx)
-}
-
-type ConnectionOptions struct {
-	Address    string
-	CaCertPath string
-	TenantID   TenantID
-	Creds      credentials.PerRPCCredentials
-	Insecure   bool
-	Timeout    time.Duration
-}
-
-type ConnectionOption func(*ConnectionOptions)
+type ConnectionOption = opts.ConnectionOption
 
 func WithInsecure(insecure bool) ConnectionOption {
-	return func(options *ConnectionOptions) {
+	return func(options *opts.ConnectionOptions) {
 		options.Insecure = insecure
 	}
 }
 
-func WithTimeout(timeout time.Duration) ConnectionOption {
-	return func(options *ConnectionOptions) {
+func WithTimeout(timeout time.Duration) opts.ConnectionOption {
+	return func(options *opts.ConnectionOptions) {
 		options.Timeout = timeout
 	}
 }
 
-func WithAddr(addr string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+func WithAddr(addr string) opts.ConnectionOption {
+	return func(options *opts.ConnectionOptions) {
 		options.Address = addr
 	}
 }
 
-func WithCACertPath(path string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+func WithCACertPath(path string) opts.ConnectionOption {
+	return func(options *opts.ConnectionOptions) {
 		options.CaCertPath = path
 	}
 }
 
-func WithTokenAuth(token string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+func WithTokenAuth(token string) opts.ConnectionOption {
+	return func(options *opts.ConnectionOptions) {
 		options.Creds = &service.TokenAuth{
 			Token: token,
 		}
 	}
 }
 
-func WithAPIKeyAuth(key string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+func WithAPIKeyAuth(key string) opts.ConnectionOption {
+	return func(options *opts.ConnectionOptions) {
 		options.Creds = &service.APIKeyAuth{
 			Key: key,
 		}
 	}
 }
 
-func WithTenantID(tenantID string) ConnectionOption {
-	return func(options *ConnectionOptions) {
-		options.TenantID = TenantID(tenantID)
+func WithTenantID(tenantID string) opts.ConnectionOption {
+	return func(options *opts.ConnectionOptions) {
+		options.TenantID = tenantID
 	}
 }

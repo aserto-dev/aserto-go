@@ -1,9 +1,9 @@
-package aserto
+package context
 
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/pkg/service"
+	"github.com/aserto-dev/aserto-go/service"
 	"google.golang.org/grpc/metadata"
 )
 

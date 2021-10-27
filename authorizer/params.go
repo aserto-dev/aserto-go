@@ -1,4 +1,4 @@
-package aserto
+package authorizer
 
 import (
 	"errors"

@@ -5,27 +5,26 @@ import (
 	"io/ioutil"
 	"time"
 
+	op "github.com/aserto-dev/aserto-go/options"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-
-	"github.com/aserto-dev/aserto-go"
 )
 
 type Connection struct {
 	Conn     *grpc.ClientConn
-	TenantID aserto.TenantID
+	TenantID string
 }
 
 const defaultConnectionTimeout time.Duration = time.Duration(5) * time.Second
 
-func NewConnection(ctx context.Context, opts ...aserto.ConnectionOption) (*Connection, error) {
+func NewConnection(ctx context.Context, opts ...op.ConnectionOption) (*Connection, error) {
 	const (
 		defaultInsecure = false
 		defaultTimeout  = defaultConnectionTimeout
 	)
 
-	options := &aserto.ConnectionOptions{
+	options := &op.ConnectionOptions{
 		Insecure: defaultInsecure,
 		Timeout:  defaultTimeout,
 	}

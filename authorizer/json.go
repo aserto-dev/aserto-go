@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-
-	aserto "github.com/aserto-dev/aserto-go"
 )
 
-func ReadDecisions(reader io.Reader) (aserto.DecisionResults, error) {
+func ReadDecisions(reader io.Reader) (DecisionResults, error) {
 	body, err := unmarshalObject(reader)
 	if err != nil {
 		return nil, err
@@ -18,7 +16,7 @@ func ReadDecisions(reader io.Reader) (aserto.DecisionResults, error) {
 	return unmarshalDecisionResults(body["decisions"])
 }
 
-func ReadDecisionTree(reader io.Reader) (*aserto.DecisionTree, error) {
+func ReadDecisionTree(reader io.Reader) (*DecisionTree, error) {
 	body, err := unmarshalObject(reader)
 	if err != nil {
 		return nil, err
@@ -43,28 +41,28 @@ func unmarshalObject(reader io.Reader) (map[string]interface{}, error) {
 	return obj, nil
 }
 
-func unmarshalDecisionResults(jsonDecisions interface{}) (aserto.DecisionResults, error) {
+func unmarshalDecisionResults(jsonDecisions interface{}) (DecisionResults, error) {
 	decisions, ok := jsonDecisions.([]interface{})
 	if !ok {
-		return nil, aserto.ErrUnexpectedJSONSchema
+		return nil, ErrUnexpectedJSONSchema
 	}
 
-	results := aserto.DecisionResults{}
+	results := DecisionResults{}
 
 	for _, d := range decisions {
 		decision, ok := d.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("%w: decision should be an object, found %v", aserto.ErrUnexpectedJSONSchema, d)
+			return nil, fmt.Errorf("%w: decision should be an object, found %v", ErrUnexpectedJSONSchema, d)
 		}
 
 		name, ok := decision["decision"]
 		if !ok {
-			return nil, fmt.Errorf("%w: missing 'decision' key: %v", aserto.ErrUnexpectedJSONSchema, decision)
+			return nil, fmt.Errorf("%w: missing 'decision' key: %v", ErrUnexpectedJSONSchema, decision)
 		}
 
 		is, ok := decision["is"]
 		if !ok {
-			return nil, fmt.Errorf("%w: missing 'is' key: %v", aserto.ErrUnexpectedJSONSchema, decision)
+			return nil, fmt.Errorf("%w: missing 'is' key: %v", ErrUnexpectedJSONSchema, decision)
 		}
 
 		results[name.(string)] = is.(bool)
@@ -73,10 +71,10 @@ func unmarshalDecisionResults(jsonDecisions interface{}) (aserto.DecisionResults
 	return results, nil
 }
 
-func unmarshalDecisionTree(jsonTree interface{}) (*aserto.DecisionTree, error) {
+func unmarshalDecisionTree(jsonTree interface{}) (*DecisionTree, error) {
 	tree, ok := jsonTree.(map[string]interface{})
 	if !ok {
-		return nil, aserto.ErrUnexpectedJSONSchema
+		return nil, ErrUnexpectedJSONSchema
 	}
 
 	root, err := unmarshalStringMapValue(tree, "path_root")
@@ -86,22 +84,22 @@ func unmarshalDecisionTree(jsonTree interface{}) (*aserto.DecisionTree, error) {
 
 	path, ok := tree["path"].(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("%w: path", aserto.ErrUnexpectedJSONSchema)
+		return nil, fmt.Errorf("%w: path", ErrUnexpectedJSONSchema)
 	}
 
-	return &aserto.DecisionTree{Root: root, Path: path}, nil
+	return &DecisionTree{Root: root, Path: path}, nil
 }
 
 func unmarshalStringMapValue(obj map[string]interface{}, key string) (string, error) {
 	if _, ok := obj[key]; !ok {
-		return "", fmt.Errorf("%w: missing key '%s'", aserto.ErrUnexpectedJSONSchema, key)
+		return "", fmt.Errorf("%w: missing key '%s'", ErrUnexpectedJSONSchema, key)
 	}
 
 	val, ok := obj[key].(string)
 	if !ok {
 		return "", fmt.Errorf(
 			"%w: unexpected value in '%s'. expected string, found '%v'",
-			aserto.ErrUnexpectedJSONSchema,
+			ErrUnexpectedJSONSchema,
 			key,
 			obj[key],
 		)
