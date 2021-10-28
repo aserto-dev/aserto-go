@@ -16,7 +16,6 @@ func (id TenantID) WithContext(ctx context.Context) context.Context {
 type ConnectionOptions struct {
 	address    string
 	caCertPath string
-	ctx        context.Context
 	tenantID   TenantID
 	creds      credentials.PerRPCCredentials
 	insecure   bool
@@ -68,6 +67,5 @@ func WithAPIKeyAuth(key string) ConnectionOption {
 func WithTenantContext(tenantID string) ConnectionOption {
 	return func(options *ConnectionOptions) {
 		options.tenantID = TenantID(tenantID)
-		options.ctx = options.tenantID.WithContext(options.ctx)
 	}
 }
