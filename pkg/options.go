@@ -48,6 +48,6 @@ func WithAPIKeyAuth(key string) internal.ConnectionOption {
 
 func WithTenantID(tenantID string) internal.ConnectionOption {
 	return func(options *internal.ConnectionOptions) {
-		options.TenantID = internal.TenantID(tenantID)
+		options.TenantID = TenantID(tenantID)
 	}
 }

@@ -8,10 +8,7 @@ import (
 
 type ContextWrapper interface {
 	WithContext(context.Context) context.Context
-}
-
-func SetTenantContext(ctx context.Context, tenantID string) context.Context {
-	return metadata.AppendToOutgoingContext(ctx, AsertoTenantID, tenantID)
+	String() string
 }
 
 func setAsertoAPIKey(ctx context.Context, key string) context.Context {

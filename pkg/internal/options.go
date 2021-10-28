@@ -1,22 +1,15 @@
 package internal
 
 import (
-	"context"
 	"time"
 
 	"google.golang.org/grpc/credentials"
 )
 
-type TenantID string
-
-func (id TenantID) WithContext(ctx context.Context) context.Context {
-	return SetTenantContext(ctx, string(id))
-}
-
 type ConnectionOptions struct {
 	Address    string
 	CACertPath string
-	TenantID   TenantID
+	TenantID   ContextWrapper
 	Creds      credentials.PerRPCCredentials
 	Insecure   bool
 	Timeout    time.Duration
