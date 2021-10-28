@@ -11,7 +11,7 @@ type TokenAuth struct {
 	token string
 }
 
-// TokenAuth implements credentials.PerRPCCredentials
+// TokenAuth implements credentials.PerRPCCredentials.
 var _ credentials.PerRPCCredentials = (*TokenAuth)(nil)
 
 func NewTokenAuth(token string) *TokenAuth {
@@ -30,12 +30,12 @@ func (TokenAuth) RequireTransportSecurity() bool {
 	return true
 }
 
-// APIKeyAuth API key based authentication
+// APIKeyAuth API key based authentication.
 type APIKeyAuth struct {
 	key string
 }
 
-// APIKeyAuth implements credentials.PerRPCCredentials
+// APIKeyAuth implements credentials.PerRPCCredentials.
 var _ credentials.PerRPCCredentials = (*APIKeyAuth)(nil)
 
 func NewAPIKeyAuth(key string) *APIKeyAuth {

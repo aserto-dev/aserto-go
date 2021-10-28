@@ -20,5 +20,6 @@ func tlsConfig(insecure bool) (*tls.Config, error) {
 		tlsConf.RootCAs = certPool
 		tlsConf.MinVersion = tls.VersionTLS12
 	}
+
 	return &tlsConf, nil
 }

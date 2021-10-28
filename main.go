@@ -1,5 +1,5 @@
 package main
 
 func main() {
-	// TODO: Remove. This is just a placeholder to allow `go build` to succeed.
+	// Nothing to do here. This is just a package, not a program.
 }
