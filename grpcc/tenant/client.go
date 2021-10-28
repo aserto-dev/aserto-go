@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/grpcc"
-	"github.com/aserto-dev/aserto-go/options"
+	"github.com/aserto-dev/aserto-go/pkg/options"
 
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 	account "github.com/aserto-dev/go-grpc/aserto/tenant/account/v1"

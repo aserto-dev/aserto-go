@@ -1,9 +1,28 @@
-package authorizer
+package options
 
 import (
 	"errors"
 	"fmt"
+	"time"
+
+	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	"google.golang.org/grpc/credentials"
 )
+
+type ConnectionOptions struct {
+	Address    string
+	CaCertPath string
+	TenantID   string
+	Creds      credentials.PerRPCCredentials
+	Insecure   bool
+	Timeout    time.Duration
+}
+
+type ConnectionOption func(*ConnectionOptions)
+
+type Resource map[string]interface{}
+
+type IdentityType int32
 
 type AuthorizerParams struct {
 	PolicyID     *string
@@ -15,42 +34,6 @@ type AuthorizerParams struct {
 }
 
 type AuthorizerParam func(*AuthorizerParams)
-
-func WithPolicyID(policyID string) AuthorizerParam {
-	return func(params *AuthorizerParams) {
-		params.PolicyID = &policyID
-	}
-}
-
-func WithPolicyPath(policyPath string) AuthorizerParam {
-	return func(params *AuthorizerParams) {
-		params.PolicyPath = &policyPath
-	}
-}
-
-func WithIdentityType(identityType IdentityType) AuthorizerParam {
-	return func(params *AuthorizerParams) {
-		params.IdentityType = identityType
-	}
-}
-
-func WithIdentity(identity string) AuthorizerParam {
-	return func(params *AuthorizerParams) {
-		params.Identity = &identity
-	}
-}
-
-func WithDecisions(decisions []string) AuthorizerParam {
-	return func(params *AuthorizerParams) {
-		params.Decisions = &decisions
-	}
-}
-
-func WithResource(resource Resource) AuthorizerParam {
-	return func(params *AuthorizerParams) {
-		params.Resource = &resource
-	}
-}
 
 func (params *AuthorizerParams) Override(overrides ...AuthorizerParam) (*AuthorizerParams, error) {
 	overridden := *params
@@ -66,7 +49,7 @@ func (params *AuthorizerParams) Override(overrides ...AuthorizerParam) (*Authori
 		return nil, fmt.Errorf("%w: policyPath", err)
 	}
 
-	if params.IdentityType == IdentityTypeUnknown {
+	if params.IdentityType == IdentityType(api.IdentityType_IDENTITY_TYPE_UNKNOWN) {
 		return nil, fmt.Errorf("%w: identityType", errMissingParam)
 	}
 

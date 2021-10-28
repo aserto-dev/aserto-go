@@ -5,20 +5,18 @@ import (
 
 	ctxt "github.com/aserto-dev/aserto-go/context"
 	"github.com/aserto-dev/aserto-go/grpcc"
-	"github.com/aserto-dev/aserto-go/options"
+	"github.com/aserto-dev/aserto-go/pkg/options"
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-type GRPCAuthorizer struct {
+type grpcAuthorizer struct {
 	client   authz.AuthorizerClient
 	conn     *grpcc.Connection
-	defaults AuthorizerParams
+	defaults options.AuthorizerParams
 }
-
-var _ Authorizer = (*GRPCAuthorizer)(nil)
 
 func NewGRPCAuthorizer(ctx context.Context, opts ...options.ConnectionOption) (Authorizer, error) {
 	con, err := grpcc.NewConnection(ctx, opts...)
@@ -26,16 +24,16 @@ func NewGRPCAuthorizer(ctx context.Context, opts ...options.ConnectionOption) (A
 		return nil, err
 	}
 
-	return &GRPCAuthorizer{
+	return &grpcAuthorizer{
 		client:   authz.NewAuthorizerClient(con.Conn),
 		conn:     con,
-		defaults: AuthorizerParams{},
+		defaults: options.AuthorizerParams{},
 	}, nil
 }
 
-func (authorizer *GRPCAuthorizer) Decide(
+func (authorizer *grpcAuthorizer) Decide(
 	ctx context.Context,
-	params ...AuthorizerParam,
+	params ...options.AuthorizerParam,
 ) (DecisionResults, error) {
 	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
@@ -73,10 +71,10 @@ func (authorizer *GRPCAuthorizer) Decide(
 	return results, nil
 }
 
-func (authorizer *GRPCAuthorizer) DecisionTree(
+func (authorizer *grpcAuthorizer) DecisionTree(
 	ctx context.Context,
 	sep PathSeparator,
-	params ...AuthorizerParam,
+	params ...options.AuthorizerParam,
 ) (*DecisionTree, error) {
 	args, err := authorizer.defaults.Override(params...)
 	if err != nil {
@@ -111,7 +109,7 @@ func (authorizer *GRPCAuthorizer) DecisionTree(
 	return &DecisionTree{Root: resp.PathRoot, Path: resp.Path.AsMap()}, nil
 }
 
-func (authorizer *GRPCAuthorizer) Options(params ...AuthorizerParam) error {
+func (authorizer *grpcAuthorizer) Options(params ...options.AuthorizerParam) error {
 	for _, param := range params {
 		param(&authorizer.defaults)
 	}

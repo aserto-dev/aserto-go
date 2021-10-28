@@ -2,10 +2,13 @@ package authorizer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 )
+
+var ErrUnexpectedJSONSchema = errors.New("unexpected JSON schema")
 
 func ReadDecisions(reader io.Reader) (DecisionResults, error) {
 	body, err := unmarshalObject(reader)

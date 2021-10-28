@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/grpcc"
-	"github.com/aserto-dev/aserto-go/options"
+	"github.com/aserto-dev/aserto-go/pkg/options"
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	dir "github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"

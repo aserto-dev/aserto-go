@@ -3,7 +3,7 @@ package aserto
 import (
 	"time"
 
-	opts "github.com/aserto-dev/aserto-go/options"
+	opts "github.com/aserto-dev/aserto-go/pkg/options"
 	"github.com/aserto-dev/aserto-go/service"
 )
 

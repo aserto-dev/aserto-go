@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	op "github.com/aserto-dev/aserto-go/options"
+	op "github.com/aserto-dev/aserto-go/pkg/options"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

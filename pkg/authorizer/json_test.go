@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aserto-dev/aserto-go/authorizer"
+	"github.com/aserto-dev/aserto-go/pkg/authorizer"
 )
 
 func TestReadDecisions(t *testing.T) {

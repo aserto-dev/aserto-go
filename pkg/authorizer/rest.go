@@ -11,17 +11,15 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	op "github.com/aserto-dev/aserto-go/options"
+	op "github.com/aserto-dev/aserto-go/pkg/options"
 	"google.golang.org/grpc/credentials"
 )
 
 type RestAuthorizer struct {
 	options  op.ConnectionOptions
 	client   *http.Client
-	defaults AuthorizerParams
+	defaults op.AuthorizerParams
 }
-
-var _ Authorizer = (*RestAuthorizer)(nil)
 
 var ErrHTTPFailure = errors.New("http error response")
 
@@ -55,7 +53,7 @@ func ConfigureTLS(options *op.ConnectionOptions) *tls.Config {
 
 func (authz *RestAuthorizer) Decide(
 	ctx context.Context,
-	params ...AuthorizerParam,
+	params ...op.AuthorizerParam,
 ) (DecisionResults, error) {
 	args, err := authz.defaults.Override(params...)
 	if err != nil {
@@ -92,7 +90,7 @@ func (authz *RestAuthorizer) Decide(
 func (authz *RestAuthorizer) DecisionTree(
 	ctx context.Context,
 	sep PathSeparator,
-	params ...AuthorizerParam,
+	params ...op.AuthorizerParam,
 ) (*DecisionTree, error) {
 	args, err := authz.defaults.Override(params...)
 	if err != nil {
@@ -129,7 +127,7 @@ func (authz *RestAuthorizer) DecisionTree(
 	return ReadDecisionTree(resp.Body)
 }
 
-func (authz *RestAuthorizer) Options(params ...AuthorizerParam) error {
+func (authz *RestAuthorizer) Options(params ...op.AuthorizerParam) error {
 	for _, param := range params {
 		param(&authz.defaults)
 	}
