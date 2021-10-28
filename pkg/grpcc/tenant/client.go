@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/pkg/grpcc"
+	"github.com/aserto-dev/aserto-go/pkg/internal"
 
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 	account "github.com/aserto-dev/go-grpc/aserto/tenant/account/v1"
@@ -31,7 +32,7 @@ type Client struct {
 }
 
 // New creates a tenant Client with the specified connection options.
-func New(ctx context.Context, opts ...grpcc.ConnectionOption) (*Client, error) {
+func New(ctx context.Context, opts ...internal.ConnectionOption) (*Client, error) {
 	conn, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "create grpc client failed")

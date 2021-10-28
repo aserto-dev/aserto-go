@@ -3,8 +3,8 @@ package grpcc
 import (
 	"context"
 	"io/ioutil"
-	"time"
 
+	"github.com/aserto-dev/aserto-go/pkg/internal"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -12,57 +12,43 @@ import (
 
 type Connection struct {
 	Conn     *grpc.ClientConn
-	TenantID TenantID
+	TenantID internal.ContextWrapper
 }
 
-const defaultConnectionTimeout time.Duration = time.Duration(5) * time.Second
+func NewConnection(ctx context.Context, opts ...internal.ConnectionOption) (*Connection, error) {
+	options := internal.NewConnectionOptions(opts...)
 
-func NewConnection(ctx context.Context, opts ...ConnectionOption) (*Connection, error) {
-	const (
-		defaultInsecure = false
-		defaultTimeout  = defaultConnectionTimeout
-	)
-
-	options := &ConnectionOptions{
-		insecure: defaultInsecure,
-		timeout:  defaultTimeout,
-	}
-
-	for _, opt := range opts {
-		opt(options)
-	}
-
-	tlsConf, err := tlsConfig(options.insecure)
+	tlsConf, err := internal.TLSConfig(options.Insecure)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to setup tls configuration")
 	}
 
-	if options.caCertPath != "" {
-		caCertBytes, err := ioutil.ReadFile(options.caCertPath)
+	if options.CACertPath != "" {
+		caCertBytes, err := ioutil.ReadFile(options.CACertPath)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read ca cert [%s]", options.caCertPath)
+			return nil, errors.Wrapf(err, "failed to read ca cert [%s]", options.CACertPath)
 		}
 
 		if !tlsConf.RootCAs.AppendCertsFromPEM(caCertBytes) {
-			return nil, errors.Wrapf(err, "failed to append client ca cert [%s]", options.caCertPath)
+			return nil, errors.Wrapf(err, "failed to append client ca cert [%s]", options.CACertPath)
 		}
 	}
 
 	clientCreds := credentials.NewTLS(tlsConf)
 
-	ctx, cancel := context.WithTimeout(ctx, options.timeout)
+	ctx, cancel := context.WithTimeout(ctx, options.Timeout)
 	defer cancel()
 
 	conn, err := grpc.DialContext(
 		ctx,
-		options.address,
+		options.Address,
 		grpc.WithTransportCredentials(clientCreds),
-		grpc.WithPerRPCCredentials(options.creds),
+		grpc.WithPerRPCCredentials(options.Creds),
 		grpc.WithBlock(),
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to setup grpc dial context to %s", options.address)
+		return nil, errors.Wrapf(err, "failed to setup grpc dial context to %s", options.Address)
 	}
 
-	return &Connection{Conn: conn, TenantID: options.tenantID}, nil
+	return &Connection{Conn: conn, TenantID: options.TenantID}, nil
 }
