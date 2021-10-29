@@ -31,5 +31,6 @@ func NewAuthorizer(
 	case ConnectionTypeREST:
 		return rest.NewAuthorizer(opts...)
 	}
+
 	return nil, fmt.Errorf("%w: %v", ErrInvalidConnectionType, ctype)
 }

@@ -1,10 +1,17 @@
 package internal
 
 import (
+	"context"
 	"time"
 
 	"google.golang.org/grpc/credentials"
 )
+
+type ContextWrapper interface {
+	WithContext(context.Context) context.Context
+
+	String() string
+}
 
 type ConnectionOptions struct {
 	Address    string
@@ -17,19 +24,20 @@ type ConnectionOptions struct {
 
 type ConnectionOption func(*ConnectionOptions)
 
-func NewConnectionOptions(opts ...ConnectionOption) *ConnectionOptions {
-	const (
-		defaultInsecure = false
-		defaultTimeout  = time.Duration(5) * time.Second
-	)
+const (
+	defaultTimeoutSec = 5
+	defaultInsecure   = false
+)
 
+func NewConnectionOptions(opts ...ConnectionOption) *ConnectionOptions {
 	options := &ConnectionOptions{
 		Insecure: defaultInsecure,
-		Timeout:  defaultTimeout,
+		Timeout:  time.Duration(defaultTimeoutSec) * time.Second,
 	}
 
 	for _, opt := range opts {
 		opt(options)
 	}
+
 	return options
 }

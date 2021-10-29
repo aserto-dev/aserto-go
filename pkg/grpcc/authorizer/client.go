@@ -50,6 +50,7 @@ func NewAuthorizer(ctx context.Context, opts ...internal.ConnectionOption) (auth
 	if err != nil {
 		return nil, errors.Wrap(err, "create grpc client failed")
 	}
+
 	return &contextualAuthorizerClient{
 		authorizer: authz.NewAuthorizerClient((connection.Conn)),
 		wrappers:   []internal.ContextWrapper{connection.TenantID},
@@ -89,5 +90,6 @@ func (c *contextualAuthorizerClient) wrapContext(ctx context.Context) context.Co
 	for _, wrapper := range c.wrappers {
 		ctx = wrapper.WithContext(ctx)
 	}
+
 	return ctx
 }

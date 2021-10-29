@@ -12,7 +12,6 @@ import (
 	"github.com/aserto-dev/aserto-go/pkg/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 
-	// api "github.com/aserto-dev/go-grpc/aserto/api/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -37,8 +36,9 @@ type authorizer struct {
 	options    *internal.ConnectionOptions
 }
 
-func NewAuthorizer(opts ...internal.ConnectionOption) (*authorizer, error) {
+func NewAuthorizer(opts ...internal.ConnectionOption) (authz.AuthorizerClient, error) {
 	options := internal.NewConnectionOptions(opts...)
+
 	tlsConf, err := internal.TLSConfig(options.Insecure)
 	if err != nil {
 		return nil, err
@@ -85,6 +85,7 @@ func (a *authorizer) Is(
 	if err := protojson.Unmarshal(respBody, &response); err != nil {
 		return nil, err
 	}
+
 	return &response, nil
 }
 
@@ -102,6 +103,7 @@ func (a *authorizer) Query(
 	if err := protojson.Unmarshal(respBody, &response); err != nil {
 		return nil, err
 	}
+
 	return &response, nil
 }
 
