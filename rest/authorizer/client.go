@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/aserto-dev/aserto-go/pkg/internal"
+	"github.com/aserto-dev/aserto-go/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 
 	"google.golang.org/grpc"

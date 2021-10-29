@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	grpcc "github.com/aserto-dev/aserto-go/pkg/grpcc/authorizer"
-	"github.com/aserto-dev/aserto-go/pkg/internal"
-	rest "github.com/aserto-dev/aserto-go/pkg/rest/authorizer"
+	grpcc "github.com/aserto-dev/aserto-go/grpcc/authorizer"
+	"github.com/aserto-dev/aserto-go/internal"
+	rest "github.com/aserto-dev/aserto-go/rest/authorizer"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 )
 

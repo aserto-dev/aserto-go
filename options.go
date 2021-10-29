@@ -1,7 +1,7 @@
 package aserto
 
 import (
-	"github.com/aserto-dev/aserto-go/pkg/internal"
+	"github.com/aserto-dev/aserto-go/internal"
 )
 
 // WithInsecure causes the connection to skip TLS verification.

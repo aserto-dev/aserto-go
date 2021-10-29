@@ -3,8 +3,8 @@ package authorizer
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/pkg/internal"
-	"github.com/aserto-dev/aserto-go/pkg/internal/grpcc"
+	"github.com/aserto-dev/aserto-go/internal"
+	"github.com/aserto-dev/aserto-go/internal/grpcc"
 	"google.golang.org/grpc"
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"

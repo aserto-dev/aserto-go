@@ -3,7 +3,7 @@ package aserto
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/pkg/internal"
+	"github.com/aserto-dev/aserto-go/internal"
 	"google.golang.org/grpc/metadata"
 )
 

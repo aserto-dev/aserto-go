@@ -3,8 +3,8 @@ package tenant
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/pkg/internal"
-	"github.com/aserto-dev/aserto-go/pkg/internal/grpcc"
+	"github.com/aserto-dev/aserto-go/internal"
+	"github.com/aserto-dev/aserto-go/internal/grpcc"
 
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 	account "github.com/aserto-dev/go-grpc/aserto/tenant/account/v1"

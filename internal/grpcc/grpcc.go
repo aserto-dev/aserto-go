@@ -4,7 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 
-	"github.com/aserto-dev/aserto-go/pkg/internal"
+	"github.com/aserto-dev/aserto-go/internal"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
