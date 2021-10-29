@@ -1,9 +1,8 @@
-package aserto
+package internal
 
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/pkg/internal"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -23,7 +22,7 @@ func NewTokenAuth(token string) *TokenAuth {
 
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	return map[string]string{
-		internal.Authorization: internal.Bearer + " " + t.token,
+		Authorization: Bearer + " " + t.token,
 	}, nil
 }
 
@@ -47,7 +46,7 @@ func NewAPIKeyAuth(key string) *APIKeyAuth {
 
 func (k *APIKeyAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	return map[string]string{
-		internal.Authorization: internal.Basic + " " + k.key,
+		Authorization: Basic + " " + k.key,
 	}, nil
 }
 

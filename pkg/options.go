@@ -32,17 +32,13 @@ func WithCACertPath(path string) internal.ConnectionOption {
 
 func WithTokenAuth(token string) internal.ConnectionOption {
 	return func(options *internal.ConnectionOptions) {
-		options.Creds = &TokenAuth{
-			token: token,
-		}
+		options.Creds = internal.NewTokenAuth(token)
 	}
 }
 
 func WithAPIKeyAuth(key string) internal.ConnectionOption {
 	return func(options *internal.ConnectionOptions) {
-		options.Creds = &APIKeyAuth{
-			key: key,
-		}
+		options.Creds = internal.NewAPIKeyAuth(key)
 	}
 }
 

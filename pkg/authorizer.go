@@ -11,15 +11,20 @@ import (
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 )
 
+// ConnectionType defines choices for the kind of underlying communication method an authorizer can use.
 type ConnectionType int32
 
 const (
-	ConnectionTypeGRPC ConnectionType = iota
-	ConnectionTypeREST
+	ConnectionTypeGRPC ConnectionType = iota // Use gRPC.
+	ConnectionTypeREST                       // Use REST.
 )
 
-var ErrInvalidConnectionType = errors.New("invalid connection type")
+// Error codes.
+var (
+	ErrInvalidConnectionType = errors.New("invalid connection type")
+)
 
+// NewAuthorizer creates a new authorizer client of the specified connection type.
 func NewAuthorizer(
 	ctx context.Context,
 	ctype ConnectionType,
