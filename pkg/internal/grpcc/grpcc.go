@@ -11,8 +11,8 @@ import (
 )
 
 type Connection struct {
-	Conn     *grpc.ClientConn
-	TenantID internal.ContextWrapper
+	Conn           *grpc.ClientConn
+	ContextWrapper internal.ContextWrapper
 }
 
 func NewConnection(ctx context.Context, opts ...internal.ConnectionOption) (*Connection, error) {
@@ -47,5 +47,5 @@ func NewConnection(ctx context.Context, opts ...internal.ConnectionOption) (*Con
 		return nil, errors.Wrapf(err, "failed to setup grpc dial context to %s", options.Address)
 	}
 
-	return &Connection{Conn: conn, TenantID: options.TenantID}, nil
+	return &Connection{Conn: conn, ContextWrapper: options.TenantID}, nil
 }

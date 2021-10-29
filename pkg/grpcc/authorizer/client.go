@@ -3,8 +3,8 @@ package authorizer
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/pkg/grpcc"
 	"github.com/aserto-dev/aserto-go/pkg/internal"
+	"github.com/aserto-dev/aserto-go/pkg/internal/grpcc"
 	"google.golang.org/grpc"
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
@@ -48,13 +48,13 @@ func NewAuthorizer(ctx context.Context, opts ...internal.ConnectionOption) (auth
 
 	return &contextualAuthorizerClient{
 		authorizer: authz.NewAuthorizerClient((connection.Conn)),
-		wrappers:   []internal.ContextWrapper{connection.TenantID},
+		wrapper:    connection.ContextWrapper,
 	}, nil
 }
 
 type contextualAuthorizerClient struct {
 	authorizer authz.AuthorizerClient
-	wrappers   []internal.ContextWrapper
+	wrapper    internal.ContextWrapper
 }
 
 func (c *contextualAuthorizerClient) DecisionTree(
@@ -82,9 +82,5 @@ func (c *contextualAuthorizerClient) Query(
 }
 
 func (c *contextualAuthorizerClient) wrapContext(ctx context.Context) context.Context {
-	for _, wrapper := range c.wrappers {
-		ctx = wrapper.WithContext(ctx)
-	}
-
-	return ctx
+	return c.wrapper.WithContext(ctx)
 }

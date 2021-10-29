@@ -17,25 +17,18 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// Error codes for REST authorizer.
 var (
 	ErrHTTPFailure  = errors.New("received http failure response")
 	ErrNotSupported = errors.New("unsupported feature")
 )
-
-type Client struct {
-	authorizer authz.AuthorizerClient
-}
-
-func New(ctx context.Context, opts ...internal.ConnectionOption) (*Client, error) {
-	options := internal.NewConnectionOptions(opts...)
-	return &Client{authorizer: &authorizer{options: options}}, nil
-}
 
 type authorizer struct {
 	httpClient *http.Client
 	options    *internal.ConnectionOptions
 }
 
+// NewAuthorizer return a new REST authorizer with the specified options.
 func NewAuthorizer(opts ...internal.ConnectionOption) (authz.AuthorizerClient, error) {
 	options := internal.NewConnectionOptions(opts...)
 
