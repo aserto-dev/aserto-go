@@ -15,31 +15,30 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Client gRPC connection.
+// Client provides access to services only available usign gRPC.
 type Client struct {
-	conn       *grpcc.Connection
-	Authorizer authz.AuthorizerClient
-	Directory  dir.DirectoryClient
-	Policy     policy.PolicyClient
-	Info       info.InfoClient
+	conn      *grpcc.Connection
+	Directory dir.DirectoryClient
+	Policy    policy.PolicyClient
+	Info      info.InfoClient
 }
 
-// New creates an authorizer Client with the specified connection options.
-func New(ctx context.Context, opts ...internal.ConnectionOption) (*Client, error) {
+// New creates a Client with the specified connection options.
+func NewClient(ctx context.Context, opts ...internal.ConnectionOption) (*Client, error) {
 	connection, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "create grpc client failed")
 	}
 
 	return &Client{
-		conn:       connection,
-		Authorizer: authz.NewAuthorizerClient(connection.Conn),
-		Directory:  dir.NewDirectoryClient(connection.Conn),
-		Policy:     policy.NewPolicyClient(connection.Conn),
-		Info:       info.NewInfoClient(connection.Conn),
+		conn:      connection,
+		Directory: dir.NewDirectoryClient(connection.Conn),
+		Policy:    policy.NewPolicyClient(connection.Conn),
+		Info:      info.NewInfoClient(connection.Conn),
 	}, err
 }
 
+// NewAuthorizer creates a new AuthorizerClient using the specified connection options.
 func NewAuthorizer(ctx context.Context, opts ...internal.ConnectionOption) (authz.AuthorizerClient, error) {
 	connection, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {
