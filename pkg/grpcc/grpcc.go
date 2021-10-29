@@ -36,9 +36,6 @@ func NewConnection(ctx context.Context, opts ...internal.ConnectionOption) (*Con
 
 	clientCreds := credentials.NewTLS(tlsConf)
 
-	ctx, cancel := context.WithTimeout(ctx, options.Timeout)
-	defer cancel()
-
 	conn, err := grpc.DialContext(
 		ctx,
 		options.Address,

@@ -40,11 +40,6 @@ func New(ctx context.Context, opts ...internal.ConnectionOption) (*Client, error
 	}, err
 }
 
-// WithContext returns a wrapped context that includes tenant information.
-func (client *Client) WithContext(ctx context.Context) context.Context {
-	return client.conn.TenantID.WithContext(ctx)
-}
-
 func NewAuthorizer(ctx context.Context, opts ...internal.ConnectionOption) (authz.AuthorizerClient, error) {
 	connection, err := grpcc.NewConnection(ctx, opts...)
 	if err != nil {

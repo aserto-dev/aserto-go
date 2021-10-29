@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"time"
 
 	"google.golang.org/grpc/credentials"
 )
@@ -19,20 +18,17 @@ type ConnectionOptions struct {
 	TenantID   ContextWrapper
 	Creds      credentials.PerRPCCredentials
 	Insecure   bool
-	Timeout    time.Duration
 }
 
 type ConnectionOption func(*ConnectionOptions)
 
 const (
-	defaultTimeoutSec = 5
-	defaultInsecure   = false
+	defaultInsecure = false
 )
 
 func NewConnectionOptions(opts ...ConnectionOption) *ConnectionOptions {
 	options := &ConnectionOptions{
 		Insecure: defaultInsecure,
-		Timeout:  time.Duration(defaultTimeoutSec) * time.Second,
 	}
 
 	for _, opt := range opts {
