@@ -50,3 +50,7 @@ func New(ctx context.Context, opts ...internal.ConnectionOption) (*Client, error
 		Info:        info.NewInfoClient(conn.Conn),
 	}, err
 }
+
+func (c *Client) SetTenantID(tenantID string) {
+	c.conn.TenantID = tenantID
+}

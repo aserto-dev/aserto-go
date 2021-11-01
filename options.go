@@ -43,6 +43,6 @@ func WithAPIKeyAuth(key string) internal.ConnectionOption {
 // WithTenantID sets the asserto tenant ID.
 func WithTenantID(tenantID string) internal.ConnectionOption {
 	return func(options *internal.ConnectionOptions) {
-		options.TenantID = TenantID(tenantID)
+		options.TenantID = tenantID
 	}
 }

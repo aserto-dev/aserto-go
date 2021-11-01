@@ -8,11 +8,12 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
 )
 
 type Connection struct {
-	Conn           *grpc.ClientConn
-	ContextWrapper internal.ContextWrapper
+	Conn     *grpc.ClientConn
+	TenantID string
 }
 
 func NewConnection(ctx context.Context, opts ...internal.ConnectionOption) (*Connection, error) {
@@ -36,16 +37,39 @@ func NewConnection(ctx context.Context, opts ...internal.ConnectionOption) (*Con
 
 	clientCreds := credentials.NewTLS(tlsConf)
 
+	connection := &Connection{TenantID: options.TenantID}
+
 	conn, err := grpc.DialContext(
 		ctx,
 		options.Address,
 		grpc.WithTransportCredentials(clientCreds),
 		grpc.WithPerRPCCredentials(options.Creds),
 		grpc.WithBlock(),
+		grpc.WithUnaryInterceptor(connection.tenantIDInterceptor()),
 	)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to setup grpc dial context to %s", options.Address)
+		return nil, err
 	}
 
-	return &Connection{Conn: conn, ContextWrapper: options.TenantID}, nil
+	connection.Conn = conn
+
+	return connection, nil
+}
+
+func (c *Connection) tenantIDInterceptor() grpc.UnaryClientInterceptor {
+	return func(
+		ctx context.Context,
+		method string,
+		req, reply interface{},
+		cc *grpc.ClientConn,
+		invoker grpc.UnaryInvoker,
+		opts ...grpc.CallOption,
+	) error {
+		return invoker(setTenantContext(ctx, c.TenantID), method, req, reply, cc, opts...)
+	}
+}
+
+// setTenantContext returns a new context with the provided tenant ID embedded as metadata.
+func setTenantContext(ctx context.Context, tenantID string) context.Context {
+	return metadata.AppendToOutgoingContext(ctx, internal.AsertoTenantID, tenantID)
 }

@@ -15,7 +15,7 @@ type ContextWrapper interface {
 type ConnectionOptions struct {
 	Address    string
 	CACertPath string
-	TenantID   ContextWrapper
+	TenantID   string
 	Creds      credentials.PerRPCCredentials
 	Insecure   bool
 }
