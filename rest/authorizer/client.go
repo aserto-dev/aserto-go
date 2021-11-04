@@ -28,8 +28,8 @@ type authorizer struct {
 	options    *internal.ConnectionOptions
 }
 
-// NewAuthorizer return a new REST authorizer with the specified options.
-func NewAuthorizer(opts ...internal.ConnectionOption) (authz.AuthorizerClient, error) {
+// NewAuthorizerClient return a new REST authorizer with the specified options.
+func NewAuthorizerClient(opts ...internal.ConnectionOption) (authz.AuthorizerClient, error) {
 	options := internal.NewConnectionOptions(opts...)
 
 	tlsConf, err := internal.TLSConfig(options.Insecure)

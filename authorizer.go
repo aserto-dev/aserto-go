@@ -24,17 +24,17 @@ var (
 	ErrInvalidConnectionType = errors.New("invalid connection type")
 )
 
-// NewAuthorizer creates a new authorizer client of the specified connection type.
-func NewAuthorizer(
+// NewAuthorizerClient creates a new authorizer client of the specified connection type.
+func NewAuthorizerClient(
 	ctx context.Context,
 	ctype ConnectionType,
 	opts ...internal.ConnectionOption,
 ) (authz.AuthorizerClient, error) {
 	switch ctype {
 	case ConnectionTypeGRPC:
-		return grpcc.NewAuthorizer(ctx, opts...)
+		return grpcc.NewAuthorizerClient(ctx, opts...)
 	case ConnectionTypeREST:
-		return rest.NewAuthorizer(opts...)
+		return rest.NewAuthorizerClient(opts...)
 	}
 
 	return nil, fmt.Errorf("%w: %v", ErrInvalidConnectionType, ctype)

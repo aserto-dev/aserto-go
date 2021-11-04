@@ -23,7 +23,14 @@ func TestFieldMaskIsValid(t *testing.T) {
 	}
 
 	var msgType *authorizer.IsRequest
-	mask, err := fieldmaskpb.New(msgType, "policy_context.path", "identity_context.identity", "resource_context", "policy_context.id")
+
+	mask, err := fieldmaskpb.New(
+		msgType,
+		"policy_context.path",
+		"identity_context.identity",
+		"resource_context",
+		"policy_context.id",
+	)
 	if err != nil {
 		t.Errorf("failed to create field mask: %w", err)
 	}
@@ -40,6 +47,7 @@ func TestFieldMaskIsValid(t *testing.T) {
 			if err != nil {
 				t.Errorf("select failed on policy_context.path: %w", err)
 			}
+
 			actual := selection.AsMap()
 
 			if !reflect.DeepEqual(expected, actual) {

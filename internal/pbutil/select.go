@@ -52,16 +52,18 @@ func messageStruct(msg proto.Message) (*structpb.Struct, error) {
 func fieldValueToStructValue(msg protoreflect.Message, fieldName string) (*structpb.Value, error) {
 	field := msg.Descriptor().Fields().ByTextName(fieldName)
 	value := msg.Get(field)
+
 	if field.Kind() != protoreflect.MessageKind {
 		msgVal := value.Interface()
 		return structpb.NewValue(msgVal)
-	} else {
-		structValue, err := messageStruct(value.Message().Interface())
-		if err != nil {
-			return nil, err
-		}
-		return structpb.NewStructValue(structValue), nil
 	}
+
+	structValue, err := messageStruct(value.Message().Interface())
+	if err != nil {
+		return nil, err
+	}
+
+	return structpb.NewStructValue(structValue), nil
 }
 
 func newFieldMask(msg proto.Message, paths ...string) (*fieldmaskpb.FieldMask, error) {
@@ -75,6 +77,7 @@ func newFieldMask(msg proto.Message, paths ...string) (*fieldmaskpb.FieldMask, e
 	if !mask.IsValid(msg) {
 		return nil, ErrBadMask
 	}
+
 	return mask, nil
 }
 
@@ -88,9 +91,11 @@ func addMessagePathToStruct(msg proto.Message, path string, strct *structpb.Stru
 		if _, ok := leafStruct.Fields[part]; !ok {
 			leafStruct.Fields[part] = structpb.NewStructValue(emptyStruct())
 		}
+
 		leafStruct = leafStruct.Fields[part].GetStructValue()
 		leafMessage = leafMessage.Get(leafMessage.Descriptor().Fields().ByTextName(part)).Message()
 	}
+
 	lastPart := parts[len(parts)-1]
 
 	structValue, err := fieldValueToStructValue(leafMessage, lastPart)
