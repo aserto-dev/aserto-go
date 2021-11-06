@@ -7,6 +7,7 @@ require (
 	github.com/aserto-dev/go-grpc-authz v0.0.2
 	github.com/aserto-dev/mage-loot v0.4.12
 	github.com/fatih/color v1.12.0 // indirect
+	github.com/gorilla/mux v1.8.0
 	github.com/magefile/mage v1.11.0
 	github.com/pkg/errors v0.9.1
 	golang.org/x/net v0.0.0-20210503060351-7fd8e65b6420 // indirect
