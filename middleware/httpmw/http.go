@@ -50,7 +50,7 @@ func NewAuthorizer(client authz.AuthorizerClient, conf Config) *Middleware {
 	return &Middleware{
 		client:         client,
 		builder:        intmw.IsRequestBuilder{Config: conf},
-		identityMapper: anonymousIdentityMapper,
+		identityMapper: identityHeaderMapper("Authorization"),
 		resourceMapper: noResourceMapper,
 		policyMapper:   uRLPolicyPathMapper(conf.PolicyRoot),
 	}
@@ -115,10 +115,6 @@ func policyPath(path string) StringMapper {
 	return func(*http.Request) string {
 		return path
 	}
-}
-
-func anonymousIdentityMapper(*http.Request) string {
-	return ""
 }
 
 func identityHeaderMapper(header string) StringMapper {

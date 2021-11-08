@@ -205,3 +205,11 @@ provides a set of helper methods that can replace custom user-defined mappers in
 
 The middleware returned by `NewMiddleware` is configured with the following mappers by default:
 
+* Identity is retrieved from the "Authorization" HTTP Header, if present, and interpreted as an OAuth subject.
+* Policy path is retrieved from the request URL and method to form a path of the form
+  `PolicyRoot.METHOD.path.to.endpoint`.
+  If the server uses [`gorilla/mux`](https://github.com/gorilla/mux) and
+  the route contains path parameters (e.g. `"api/products/{id}"`), the surrounding braces are replaced with a
+  double-underscore prefix. For example, with policy root `"myApp"`, a request to `GET api/products/{id}` gets the
+  policy path `myApp.GET.api.products.__id`.
+* No Resource Context is included in authorization calls.
