@@ -7,7 +7,7 @@ import (
 
 	grpcc "github.com/aserto-dev/aserto-go/grpcc/authorizer"
 	"github.com/aserto-dev/aserto-go/internal"
-	rest "github.com/aserto-dev/aserto-go/rest/authorizer"
+	rest "github.com/aserto-dev/aserto-go/internal/rest"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 )
 
@@ -22,6 +22,11 @@ const (
 // Error codes.
 var (
 	ErrInvalidConnectionType = errors.New("invalid connection type")
+)
+
+type (
+	// AuthorizerClient is the client API for Authorizer service.
+	AuthorizerClient = authz.AuthorizerClient
 )
 
 // NewAuthorizerClient creates a new authorizer client of the specified connection type.

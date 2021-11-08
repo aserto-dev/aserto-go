@@ -4,10 +4,10 @@ import (
 	"github.com/aserto-dev/aserto-go/internal"
 )
 
-// WithInsecure causes the connection to skip TLS verification.
-func WithInsecure(insecure bool) internal.ConnectionOption {
+// WithInsecure disables TLS verification.
+func WithInsecure() internal.ConnectionOption {
 	return func(options *internal.ConnectionOptions) {
-		options.Insecure = insecure
+		options.Insecure = false
 	}
 }
 

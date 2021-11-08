@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/aserto-dev/aserto-go/middleware"
+	"github.com/aserto-dev/aserto-go/middleware/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -13,9 +14,26 @@ import (
 
 type Config = middleware.Config
 
+// Authorizer configures the behavior of the authorization middleware.
+//
+// When handling an incoming request, the middleware uses mapper functions to
+// retrieve authorization parameters from the request.
+// Authorizer provides mappers for commonly used scenarios and users can attach
+// their own mappers to perform custom logic.
+//
+// Identity: The identity mapper examines the message and returns a string represeting the caller's
+//   identity, such as a JWT, a user-name, email, etc. An empty string implied an unauthenticated caller.
+//   The default identity mapper reads the value of the "Authorization" HTTP header, if present.
+//
+// Policy: The policy mapper examines the message and returns a string representing the path of the
+//   authorization rules to query within the policy (e.g. "peoplefinder.POST.api.users.__id").
+//   The default policy mapper combines the configured policy root, http method, and URL path.
+//
+// Resource: The optional resource mapper examines the message and returns additional data to include in the
+//   authorization request in the form of a structpb.Struct representing a JSON object.
 type Authorizer struct {
 	client  authz.AuthorizerClient
-	builder middleware.IsRequestBuilder
+	builder internal.IsRequestBuilder
 
 	identityMapper StringMapper
 	policyMapper   StringMapper
@@ -27,18 +45,18 @@ type (
 	StructMapper func(*http.Request) *structpb.Struct
 )
 
-type Middleware func(http.Handler) http.Handler
-
+// NewAuthorizer creates a new Authorizer with default mappers.
 func NewAuthorizer(client authz.AuthorizerClient, conf Config) *Authorizer {
 	return &Authorizer{
 		client:         client,
-		builder:        middleware.IsRequestBuilder{Config: conf},
-		identityMapper: NoIdentityMapper,
-		resourceMapper: NoResourceMapper,
-		policyMapper:   URLPolicyPathMapper(conf.PolicyRoot),
+		builder:        internal.IsRequestBuilder{Config: conf},
+		identityMapper: anonymousIdentityMapper,
+		resourceMapper: noResourceMapper,
+		policyMapper:   uRLPolicyPathMapper(conf.PolicyRoot),
 	}
 }
 
+// Handler is the middleware implementation. It is how an Authorizer is wired to an HTTP server.
 func (authorizer *Authorizer) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authorizer.builder.SetPolicyPath(authorizer.policyMapper(r))
@@ -59,61 +77,70 @@ func (authorizer *Authorizer) Handler(next http.Handler) http.Handler {
 	})
 }
 
+// WithIdentityFromHeader sets an identity mapper that reads the caller's identity from the specified
+// request header.
 func (authorizer *Authorizer) WithIdentityFromHeader(header string) *Authorizer {
-	authorizer.identityMapper = IdentityHeaderMapper(header)
+	authorizer.identityMapper = identityHeaderMapper(header)
 	return authorizer
 }
 
+// WithIdentityMapper sets a custom identity mapper, a function that takes an incoming request
+// and returns the caller's identity.
 func (authorizer *Authorizer) WithIdentityMapper(mapper StringMapper) *Authorizer {
 	authorizer.identityMapper = mapper
 	return authorizer
 }
 
+// WithPolicyPath sets a path to be used in all authorization requests.
+func (authorizer *Authorizer) WithPolicyPath(path string) *Authorizer {
+	authorizer.policyMapper = policyPath(path)
+	return authorizer
+}
+
+// WithPolicyPathMapper sets a custom policy mapper, a function that takes an incoming request
+// and returns the path within the policy of the package to query.
 func (authorizer *Authorizer) WithPolicyPathMapper(mapper StringMapper) *Authorizer {
 	authorizer.policyMapper = mapper
 	return authorizer
 }
 
-func (authorizer *Authorizer) WithPolicyPath(path string) *Authorizer {
-	authorizer.policyMapper = PolicyPath(path)
-	return authorizer
-}
-
+// WithResourceMapper sets a custom resource mapper, a function that takes an incoming request
+// and returns the resource object to include with the authorization request as a `structpb.Struct`.
 func (authorizer *Authorizer) WithResourceMapper(mapper StructMapper) *Authorizer {
 	authorizer.resourceMapper = mapper
 	return authorizer
 }
 
-func PolicyPath(path string) StringMapper {
+func policyPath(path string) StringMapper {
 	return func(*http.Request) string {
 		return path
 	}
 }
 
-func NoIdentityMapper(*http.Request) string {
+func anonymousIdentityMapper(*http.Request) string {
 	return ""
 }
 
-func IdentityHeaderMapper(header string) StringMapper {
+func identityHeaderMapper(header string) StringMapper {
 	return func(r *http.Request) string {
 		return r.Header.Get(header)
 	}
 }
 
-func NoResourceMapper(*http.Request) *structpb.Struct {
+func noResourceMapper(*http.Request) *structpb.Struct {
 	resource, _ := structpb.NewStruct(nil)
 	return resource
 }
 
-func URLPolicyPathMapper(policyRoot string) StringMapper {
+func uRLPolicyPathMapper(policyRoot string) StringMapper {
 	return func(r *http.Request) string {
 		pathVars := mux.Vars(r)
-		if pathVars != nil && len(pathVars) > 0 {
+		if len(pathVars) > 0 {
 			return gorillaPathMapper(policyRoot, r)
 		}
 
 		path := strings.Trim(r.URL.Path, "/")
-		endpoint := strings.Replace(path, "/", ".", -1)
+		endpoint := strings.ReplaceAll(path, "/", ".")
 
 		return fmt.Sprintf("%s.%s.%s", policyRoot, r.Method, endpoint)
 	}
@@ -121,6 +148,7 @@ func URLPolicyPathMapper(policyRoot string) StringMapper {
 
 func gorillaPathMapper(policyRoot string, r *http.Request) string {
 	route := mux.CurrentRoute(r)
+
 	template, err := route.GetPathTemplate()
 	if err != nil {
 		return ""

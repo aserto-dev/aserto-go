@@ -51,6 +51,7 @@ func New(ctx context.Context, opts ...internal.ConnectionOption) (*Client, error
 	}, err
 }
 
+// SetTenantID provides a tenantID to be included in outgoing messages.
 func (c *Client) SetTenantID(tenantID string) {
 	c.conn.TenantID = tenantID
 }
