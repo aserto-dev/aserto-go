@@ -56,7 +56,12 @@ Two middleware implementations are available in subpackages:
 * `middleware/grpcmw` provides middleware for gRPC servers.
 * `middleware/httpmw` provides middleware for HTTP REST servers.
 
-Both take an `AuthorizerClient` and configuration that is independent of the content of incoming messages.
+When authorization middleware is configured and attached to a server, it examines incoming requests, extracts
+authorization parameters like the caller's identity, calls the Aserto authorizers, and rejects messages if their
+access is denied.
+
+Both gRPC and HTTP middleware is created from an `AuthorizerClient` and configuration for values that are not independent
+on the content of incoming messages.
 
 ```go
 // Config holds global authorization options that apply to all requests.
@@ -125,10 +130,10 @@ server := grpc.NewServer(grpc.UnaryInterceptor(middleware.Unary))
 In addition to the general `WithIdentityMapper`, `WithPolicyMapper`, and `WithResourceMapper`, the gRPC middleware
 provides a set of helper methods that can replace custom user-defined mappers in common use-cases:
 
-* *`.WithIdentityFromMetadata(field string)`*: Attaches a mapper that retrievs the caller's identity from
+* *`.WithIdentityFromMetadata(field string)`*: Attaches a mapper that retrieves the caller's identity from
   a [`metadata.MD`](https://pkg.go.dev/google.golang.org/grpc/metadata#MD) field.
 
-* *`.WithIdentityFromContextValue(value string)`*: Attaches a mapper that retrievs the caller's identity from
+* *`.WithIdentityFromContextValue(value string)`*: Attaches a mapper that retrieves the caller's identity from
   a [`Context.Value`](https://pkg.go.dev/context#Context).
 
 * *`WithPolicyPath(path string)`*: Uses the specified policy path in all authorization requests.
@@ -191,7 +196,7 @@ router.HandleFunc("/foo", fooHandler).Methods("GET")
 In addition to the general `WithIdentityMapper`, `WithPolicyMapper`, and `WithResourceMapper`, the HTTP middleware
 provides a set of helper methods that can replace custom user-defined mappers in common use-cases:
 
-* *`WithIdentityFromHeader(header string)`*: Attaches a mapper that retrievs the caller's identity from the specified
+* *`WithIdentityFromHeader(header string)`*: Attaches a mapper that retrieves the caller's identity from the specified
   HTTP header.
 
 * *`WithPolicyPath(path string)`*: Uses the specified policy path in all authorization requests.
