@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/aserto-dev/aserto-go/config"
 	"github.com/aserto-dev/aserto-go/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 
@@ -25,12 +26,12 @@ var (
 
 type authorizer struct {
 	httpClient *http.Client
-	options    *internal.ConnectionOptions
+	options    *config.ConnectionOptions
 }
 
 // NewAuthorizerClient return a new REST authorizer with the specified options.
-func NewAuthorizerClient(opts ...internal.ConnectionOption) (authz.AuthorizerClient, error) {
-	options := internal.NewConnectionOptions(opts...)
+func NewAuthorizerClient(opts ...config.ConnectionOption) (authz.AuthorizerClient, error) {
+	options := config.NewConnectionOptions(opts...)
 
 	tlsConf, err := internal.TLSConfig(options.Insecure)
 	if err != nil {

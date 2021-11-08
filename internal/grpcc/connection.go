@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 
+	"github.com/aserto-dev/aserto-go/config"
 	"github.com/aserto-dev/aserto-go/internal"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -16,8 +17,8 @@ type Connection struct {
 	TenantID string
 }
 
-func NewConnection(ctx context.Context, opts ...internal.ConnectionOption) (*Connection, error) {
-	options := internal.NewConnectionOptions(opts...)
+func NewConnection(ctx context.Context, opts ...config.ConnectionOption) (*Connection, error) {
+	options := config.NewConnectionOptions(opts...)
 
 	tlsConf, err := internal.TLSConfig(options.Insecure)
 	if err != nil {

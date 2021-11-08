@@ -1,16 +1,8 @@
-package internal
+package config
 
 import (
-	"context"
-
 	"google.golang.org/grpc/credentials"
 )
-
-type ContextWrapper interface {
-	WithContext(context.Context) context.Context
-
-	String() string
-}
 
 type ConnectionOptions struct {
 	Address    string

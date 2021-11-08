@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	intmw "github.com/aserto-dev/aserto-go/internal/middleware"
 	"github.com/aserto-dev/aserto-go/internal/pbutil"
 	"github.com/aserto-dev/aserto-go/middleware"
-	"github.com/aserto-dev/aserto-go/middleware/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -22,7 +22,7 @@ type Config = middleware.Config
 // policy path are extracted from incoming RPC calls.
 type ServerInterceptor struct {
 	client  authz.AuthorizerClient
-	builder internal.IsRequestBuilder
+	builder intmw.IsRequestBuilder
 
 	identityMapper StringMapper
 	policyMapper   StringMapper
@@ -38,14 +38,14 @@ type (
 )
 
 // NewServerInterceptor returns a new ServerInterceptor from the specified authorizer client and configuration.
-func NewServerInterceptor(client authz.AuthorizerClient, conf Config) *ServerInterceptor {
+func NewServerInterceptor(client authz.AuthorizerClient, conf Config) (*ServerInterceptor, error) {
 	return &ServerInterceptor{
 		client:         client,
-		builder:        internal.IsRequestBuilder{Config: conf},
+		builder:        intmw.IsRequestBuilder{Config: conf},
 		identityMapper: noIdentityMapper,
 		policyMapper:   methodPolicyMapper(conf.PolicyRoot),
 		resourceMapper: noResourceMapper,
-	}
+	}, nil
 }
 
 // WithIdentityFromMetadata extracts caller identity from a metadata field in the incoming message.

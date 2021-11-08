@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
 	"google.golang.org/grpc/codes"
@@ -9,11 +11,14 @@ import (
 )
 
 var (
-	// ErrUnauthorized indicates that an authorization request has been denied.
+	// An authorization request has been denied.
 	ErrUnauthorized = status.Error(codes.PermissionDenied, "unauthorized")
 
-	// ErrNoDecision indicates that the authorization policy returned no result for the requested decision.
-	ErrNoDecision = errors.New("authorizer returned no results for request decision.")
+	// The authorization policy returned no result for the requested decision.
+	ErrNoDecision = errors.New("authorizer returned no results for request decision")
+
+	// Missing required configuration value.
+	ErrMissingArgument = errors.New("missing authorization argument")
 )
 
 // Config holds global authorization options that apply to all requests.
@@ -31,6 +36,29 @@ type Config struct {
 	// to infer the correct policy path from incoming requests.
 	PolicyRoot string
 
-	// Descision is the authorization rule to use.
+	// Decision is the authorization rule to use.
 	Decision string
+}
+
+// Validate returns an error if any of the required configuration fields are missing.
+func (c *Config) Validate() error {
+	missing := []string{}
+
+	if c.IdentityType == api.IdentityType_IDENTITY_TYPE_UNKNOWN {
+		missing = append(missing, "IdentityType")
+	}
+
+	if c.PolicyID == "" {
+		missing = append(missing, "PolicyID")
+	}
+
+	if c.Decision == "" {
+		missing = append(missing, "Decision")
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("%w: [%s]", ErrMissingArgument, strings.Join(missing, ", "))
+	}
+
+	return nil
 }

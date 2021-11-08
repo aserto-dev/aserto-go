@@ -2,17 +2,14 @@ package internal
 
 import (
 	"context"
-
-	"google.golang.org/grpc/credentials"
 )
 
 // TokenAuth bearer token based authentication.
+//
+// It implements the interface credentials.PerRPCCredentials.
 type TokenAuth struct {
 	token string
 }
-
-// TokenAuth implements credentials.PerRPCCredentials.
-var _ credentials.PerRPCCredentials = (*TokenAuth)(nil)
 
 func NewTokenAuth(token string) *TokenAuth {
 	return &TokenAuth{
@@ -31,12 +28,11 @@ func (TokenAuth) RequireTransportSecurity() bool {
 }
 
 // APIKeyAuth API key based authentication.
+//
+// It implements the interface credentials.PerRPCCredentials.
 type APIKeyAuth struct {
 	key string
 }
-
-// APIKeyAuth implements credentials.PerRPCCredentials.
-var _ credentials.PerRPCCredentials = (*APIKeyAuth)(nil)
 
 func NewAPIKeyAuth(key string) *APIKeyAuth {
 	return &APIKeyAuth{
