@@ -1,3 +1,4 @@
+// The config package defines options for configuring connections to the authorizer service.
 package config
 
 import (
@@ -6,7 +7,7 @@ import (
 
 // ConnectionOptions holds settings used to establish a connection to the authorizer service.
 type ConnectionOptions struct {
-	// The server's host name and port.
+	// The server's host name and port separated by a colon ("hostname:port").
 	Address string
 
 	// Path to a CA certificate file to treat as a root CA for TLS verification.

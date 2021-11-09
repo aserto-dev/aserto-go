@@ -16,10 +16,17 @@ import (
 
 // Client provides access to services only available usign gRPC.
 type Client struct {
-	conn      *grpcc.Connection
+	conn *grpcc.Connection
+
+	// Directory provides methods for interacting with the Aserto user directory.
+	// Use the Directory client to manage users, application, and roles.
 	Directory dir.DirectoryClient
-	Policy    policy.PolicyClient
-	Info      info.InfoClient
+
+	// Policy provides read-only methods for listing and retrieving authorization policies defined in an Aserto account.
+	Policy policy.PolicyClient
+
+	// Info provides read-only access to system information and configuration.
+	Info info.InfoClient
 }
 
 // NewClient creates a Client with the specified connection options.

@@ -213,3 +213,38 @@ The middleware returned by `NewMiddleware` is configured with the following mapp
   double-underscore prefix. For example, with policy root `"myApp"`, a request to `GET api/products/{id}` gets the
   policy path `myApp.GET.api.products.__id`.
 * No Resource Context is included in authorization calls by default.
+
+
+## Other Aserto Services
+
+In addition to the authorizer service, aserto-go provides gRPC clients for Aserto's administrative services,
+allowing users to programmatically manage their aserto account.
+
+An API client is created using aserto.NewClient(...) which accepts the same connection options as
+aserto.NewAuthorizerClient(...).
+
+```go
+// Client provides access to services only available usign gRPC.
+type Client struct {
+	// Directory provides methods for interacting with the Aserto user directory.
+	// Use the Directory client to manage users, application, and roles.
+	Directory dir.DirectoryClient
+
+	// Policy provides read-only methods for listing and retrieving authorization policies defined in an Aserto account.
+	Policy policy.PolicyClient
+
+	// Info provides read-only access to system information and configuration.
+	Info info.InfoClient
+}
+```
+
+Similar to AuthorizerClient, the client interfaces are created from protocol buffer definitions and can be found
+in the "github.com/aserto-dev/go-grpc" package.
+
+| Client | Package |
+| ------ | ------- |
+| `DirectoryClient` | `"github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"` |
+| `PolicyClient` | `"github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"` |
+| `InfoClient` | `"github.com/aserto-dev/go-grpc/aserto/common/info/v1"` |
+
+Data structures used in these interfaces are defined in `"github.com/aserto-dev/go-grpc/aserto/api/v1"`.
