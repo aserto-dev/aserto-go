@@ -1,4 +1,4 @@
-package internal
+package middleware
 
 import (
 	"github.com/aserto-dev/aserto-go/middleware"
@@ -13,6 +13,14 @@ type IsRequestBuilder struct {
 	policyPath string
 	identity   string
 	resource   *structpb.Struct
+}
+
+func NewIsRequestBuilder(conf middleware.Config) (*IsRequestBuilder, error) {
+	if err := conf.Validate(); err != nil {
+		return nil, err
+	}
+
+	return &IsRequestBuilder{Config: conf}, nil
 }
 
 func (b *IsRequestBuilder) SetPolicyPath(path string) {

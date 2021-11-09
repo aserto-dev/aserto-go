@@ -120,8 +120,16 @@ func (a *authorizer) postAPIRequest(
 	return ioutil.ReadAll(resp.Body)
 }
 
+func (a *authorizer) serverAddress() string {
+	if a.options.Address != "" {
+		return a.options.Address
+	}
+
+	return internal.HostedAuthorizerHostname
+}
+
 func (a *authorizer) endpointURL(endpoint string) string {
-	return fmt.Sprintf("https://%s/api/v1/authz/%s", a.options.Address, endpoint)
+	return fmt.Sprintf("https://%s/api/v1/authz/%s", a.serverAddress(), endpoint)
 }
 
 func (a *authorizer) postRequest(ctx context.Context, url string, message proto.Message) (*http.Response, error) {

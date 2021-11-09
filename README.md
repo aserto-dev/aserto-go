@@ -147,7 +147,7 @@ The middleware returned by `NewServerInterceptor` is configured with the followi
 
 * Identity is pulled form the `"authorization"` metadata field (i.e. `WithIdentityFromMetadata("authorization")`).
 * Policy path is constructed as `<policy root>.<grpc.Method>` where path delimiters (`/`) are replaced with dots (`.`).
-* No Resource Context is included in authorization calls.
+* No Resource Context is included in authorization calls by default.
 
 For example, to retrieve the caller's identity from the `"username"` context value, and set the same policy
 path (`"myPolicy"`) in all authorization requests:
@@ -212,4 +212,4 @@ The middleware returned by `NewMiddleware` is configured with the following mapp
   the route contains path parameters (e.g. `"api/products/{id}"`), the surrounding braces are replaced with a
   double-underscore prefix. For example, with policy root `"myApp"`, a request to `GET api/products/{id}` gets the
   policy path `myApp.GET.api.products.__id`.
-* No Resource Context is included in authorization calls.
+* No Resource Context is included in authorization calls by default.

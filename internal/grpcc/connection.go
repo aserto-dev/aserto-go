@@ -42,7 +42,7 @@ func NewConnection(ctx context.Context, opts ...config.ConnectionOption) (*Conne
 
 	conn, err := grpc.DialContext(
 		ctx,
-		options.Address,
+		serverAddress(options.Address),
 		grpc.WithTransportCredentials(clientCreds),
 		grpc.WithPerRPCCredentials(options.Creds),
 		grpc.WithBlock(),
@@ -73,4 +73,12 @@ func (c *Connection) tenantIDInterceptor() grpc.UnaryClientInterceptor {
 // setTenantContext returns a new context with the provided tenant ID embedded as metadata.
 func setTenantContext(ctx context.Context, tenantID string) context.Context {
 	return metadata.AppendToOutgoingContext(ctx, internal.AsertoTenantID, tenantID)
+}
+
+func serverAddress(addr string) string {
+	if addr != "" {
+		return addr
+	}
+
+	return internal.HostedAuthorizerHostname + internal.HostedAuthorizerGRPCPort
 }
