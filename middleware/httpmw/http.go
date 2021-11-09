@@ -41,7 +41,12 @@ type Middleware struct {
 }
 
 type (
+	// StringMapper functions are used to extract string values from incoming messages.
+	// They are used to define identity and policy mappers.
 	StringMapper func(*http.Request) string
+
+	// StructMapper functions are used to extract structured data from incoming message.
+	// The optional resource mapper is a StructMapper.
 	StructMapper func(*http.Request) *structpb.Struct
 )
 

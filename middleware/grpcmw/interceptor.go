@@ -30,10 +30,12 @@ type ServerInterceptor struct {
 }
 
 type (
-	// StringMapper functions are used to extract string values like identity and policy path from incoming messages.
+	// StringMapper functions are used to extract string values from incoming messages.
+	// They are used to define identity and policy mappers.
 	StringMapper func(context.Context, interface{}) string
 
-	// StructMapper functions are used to extract a resource context structure from incoming messages.
+	// StructMapper functions are used to extract structured data from incoming message.
+	// The optional resource mapper is a StructMapper.
 	StructMapper func(context.Context, interface{}) *structpb.Struct
 )
 

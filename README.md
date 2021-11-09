@@ -127,18 +127,30 @@ server := grpc.NewServer(grpc.UnaryInterceptor(middleware.Unary))
 
 #### Mappers
 
+gRPC mappers take as their input the incoming request's context and the message.
+
+```go
+type (
+	// StringMapper functions are used to extract string values like identity and policy-path from incoming messages.
+	StringMapper func(context.Context, interface{}) string
+
+	// StructMapper functions are used to extract a resource context structure from incoming messages.
+	StructMapper func(context.Context, interface{}) *structpb.Struct
+)
+```
+
 In addition to the general `WithIdentityMapper`, `WithPolicyMapper`, and `WithResourceMapper`, the gRPC middleware
 provides a set of helper methods that can replace custom user-defined mappers in common use-cases:
 
-* *`.WithIdentityFromMetadata(field string)`*: Attaches a mapper that retrieves the caller's identity from
+* **`WithIdentityFromMetadata(field string)`**: Attaches a mapper that retrieves the caller's identity from
   a [`metadata.MD`](https://pkg.go.dev/google.golang.org/grpc/metadata#MD) field.
 
-* *`.WithIdentityFromContextValue(value string)`*: Attaches a mapper that retrieves the caller's identity from
+* **`WithIdentityFromContextValue(value string)`**: Attaches a mapper that retrieves the caller's identity from
   a [`Context.Value`](https://pkg.go.dev/context#Context).
 
-* *`WithPolicyPath(path string)`*: Uses the specified policy path in all authorization requests.
+* **`WithPolicyPath(path string)`**: Uses the specified policy path in all authorization requests.
 
-* *`WithResourceFromFields(fields ...string)`*: Attaches a mapper that constructs a Resource Context from an
+* **`WithResourceFromFields(fields ...string)`**: Attaches a mapper that constructs a Resource Context from an
   incoming message by selecting fields, similar to a field mask filter.
 
 #### Default Mappers
@@ -193,13 +205,22 @@ router.HandleFunc("/foo", fooHandler).Methods("GET")
 
 #### Mappers
 
+HTTP mappers take the incoming `http.Request` as their sole parameter.
+
+```go
+type (
+	StringMapper func(*http.Request) string
+	StructMapper func(*http.Request) *structpb.Struct
+)
+```
+
 In addition to the general `WithIdentityMapper`, `WithPolicyMapper`, and `WithResourceMapper`, the HTTP middleware
 provides a set of helper methods that can replace custom user-defined mappers in common use-cases:
 
-* *`WithIdentityFromHeader(header string)`*: Attaches a mapper that retrieves the caller's identity from the specified
+* **`WithIdentityFromHeader(header string)`**: Attaches a mapper that retrieves the caller's identity from the specified
   HTTP header.
 
-* *`WithPolicyPath(path string)`*: Uses the specified policy path in all authorization requests.
+* **`WithPolicyPath(path string)`**: Uses the specified policy path in all authorization requests.
 
 #### Default Mappers
 
