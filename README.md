@@ -2,28 +2,35 @@
 
 The `aserto-go` module provides access to the Aserto authorization service.
 
-There are two middleware implementations, one for `net/http` servers and the other for gRPC, both
-consume the lower-level `AuthorizerClient` interface.
+Communication with the authorizer service is performed using an AuthorizerClient.
+The client can be used on its own to make authorization calls or, more commonly, it can be used to create
+server middleware.
 
 ## AuthorizerClient
 
-The module provides functions to help create and configure an `AuthorizationClient`, the interface that defines
-operations exposed by the Aserto authorizer service.
-Two implementations of `AuthorizerClient` are available, one communicates with the authorizer using gRPC and the
-other makes request to its REST endpoints.
+The `AuthorizerClient` interface, defined in `"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"`,
+describes the operations exposed by the Aserto authorizer service.
 
-The `AuthorizerClient` interface is defined in the package
-`"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"`.
+Two implementation of `AuthorizerClient` are available:
+
+1. `client/grpc/authorizer` provides a client that communicates with the authorizer using gRPC.
+
+2. `client/http/authorizer` provides a client that communicates with the authorizer over its REST HTTP endpoints.
+
 
 ### Create a Client
 
-Use `aserto.NewAuthorizerClient` to create a client that communicates with the authorizer using gRPC, or
-`aserto.NewRESTAuthorizerClient` for a client that uses the REST endpoints.
+Use `authorizer.New()` to create a client.
 
 The snippet below creates an authorizer client that talks to Aserto's hosted authorizer over gRPC:
 
 ```go
-client, err := authorizer.NewAuthorizerClient(
+import (
+	aserto "github.com/aserto-dev/aserto-go/client"
+	"github.com/aserto-dev-aserto-go/client/grpc/authorizer"
+)
+...
+client, err := authorizer.New(
 	ctx,
 	aserto.WithAPIKeyAuth("<API Key>"),
 	aserto.WithTenantID("<Tenant ID>"),
@@ -53,8 +60,8 @@ resp, err := client.Is(c.Context, &authz.IsRequest{
 
 Two middleware implementations are available in subpackages:
 
-* `middleware/grpcmw` provides middleware for gRPC servers.
-* `middleware/httpmw` provides middleware for HTTP REST servers.
+* `middleware/grpc` provides middleware for gRPC servers.
+* `middleware/http` provides middleware for HTTP REST servers.
 
 When authorization middleware is configured and attached to a server, it examines incoming requests, extracts
 authorization parameters like the caller's identity, calls the Aserto authorizers, and rejects messages if their
@@ -241,8 +248,7 @@ The middleware returned by `NewMiddleware` is configured with the following mapp
 In addition to the authorizer service, aserto-go provides gRPC clients for Aserto's administrative services,
 allowing users to programmatically manage their aserto account.
 
-An API client is created using aserto.NewClient(...) which accepts the same connection options as
-aserto.NewAuthorizerClient(...).
+An API client is created using `client.New()` which accepts the same connection options as `authorizer.New()`.
 
 ```go
 // Client provides access to services only available usign gRPC.
@@ -259,7 +265,7 @@ type Client struct {
 }
 ```
 
-Similar to AuthorizerClient, the client interfaces are created from protocol buffer definitions and can be found
+Similar to `AuthorizerClient`, the client interfaces are created from protocol buffer definitions and can be found
 in the "github.com/aserto-dev/go-grpc" package.
 
 | Client | Package |
