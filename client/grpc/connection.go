@@ -46,7 +46,8 @@ func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Conne
 		grpc.WithTransportCredentials(clientCreds),
 		grpc.WithPerRPCCredentials(options.Creds),
 		grpc.WithBlock(),
-		grpc.WithUnaryInterceptor(connection.tenantIDInterceptor()),
+		grpc.WithUnaryInterceptor(connection.unary),
+		grpc.WithStreamInterceptor(connection.stream),
 	)
 	if err != nil {
 		return nil, err
@@ -57,17 +58,26 @@ func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Conne
 	return connection, nil
 }
 
-func (c *Connection) tenantIDInterceptor() grpc.UnaryClientInterceptor {
-	return func(
-		ctx context.Context,
-		method string,
-		req, reply interface{},
-		cc *grpc.ClientConn,
-		invoker grpc.UnaryInvoker,
-		opts ...grpc.CallOption,
-	) error {
-		return invoker(setTenantContext(ctx, c.TenantID), method, req, reply, cc, opts...)
-	}
+func (c *Connection) unary(
+	ctx context.Context,
+	method string,
+	req, reply interface{},
+	cc *grpc.ClientConn,
+	invoker grpc.UnaryInvoker,
+	opts ...grpc.CallOption,
+) error {
+	return invoker(setTenantContext(ctx, c.TenantID), method, req, reply, cc, opts...)
+}
+
+func (c *Connection) stream(
+	ctx context.Context,
+	desc *grpc.StreamDesc,
+	cc *grpc.ClientConn,
+	method string,
+	streamer grpc.Streamer,
+	opts ...grpc.CallOption,
+) (grpc.ClientStream, error) {
+	return streamer(setTenantContext(ctx, c.TenantID), desc, cc, method, opts...)
 }
 
 // setTenantContext returns a new context with the provided tenant ID embedded as metadata.
