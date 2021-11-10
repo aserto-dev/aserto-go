@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"io/ioutil"
+	"time"
 
 	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/client/internal"
@@ -16,6 +17,8 @@ type Connection struct {
 	Conn     *grpc.ClientConn
 	TenantID string
 }
+
+const defaultTimeout time.Duration = time.Duration(5) * time.Second
 
 func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Connection, error) {
 	options := client.NewConnectionOptions(opts...)
@@ -39,6 +42,14 @@ func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Conne
 	clientCreds := credentials.NewTLS(tlsConf)
 
 	connection := &Connection{TenantID: options.TenantID}
+
+	if _, ok := ctx.Deadline(); !ok {
+		// Set the default timeout if the context already have a timeout.
+		var cancel context.CancelFunc
+
+		ctx, cancel = context.WithTimeout(ctx, defaultTimeout)
+		defer cancel()
+	}
 
 	conn, err := grpc.DialContext(
 		ctx,
