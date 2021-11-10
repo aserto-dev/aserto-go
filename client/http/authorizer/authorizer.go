@@ -1,4 +1,4 @@
-package rest
+package authorizer
 
 import (
 	"bytes"
@@ -9,8 +9,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/aserto-dev/aserto-go/config"
-	"github.com/aserto-dev/aserto-go/internal"
+	"github.com/aserto-dev/aserto-go/client"
+	"github.com/aserto-dev/aserto-go/client/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 
 	"google.golang.org/grpc"
@@ -26,25 +26,25 @@ var (
 
 type authorizer struct {
 	httpClient *http.Client
-	options    *config.ConnectionOptions
+	options    *client.ConnectionOptions
 }
 
 // NewAuthorizerClient return a new REST authorizer with the specified options.
-func NewAuthorizerClient(opts ...config.ConnectionOption) (authz.AuthorizerClient, error) {
-	options := config.NewConnectionOptions(opts...)
+func NewAuthorizerClient(opts ...client.ConnectionOption) (authz.AuthorizerClient, error) {
+	options := client.NewConnectionOptions(opts...)
 
 	tlsConf, err := internal.TLSConfig(options.Insecure)
 	if err != nil {
 		return nil, err
 	}
 
-	client := &http.Client{
+	httpc := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: tlsConf,
 		},
 	}
 
-	return &authorizer{options: options, httpClient: client}, nil
+	return &authorizer{options: options, httpClient: httpc}, nil
 }
 
 func (a *authorizer) DecisionTree(

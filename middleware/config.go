@@ -1,24 +1,10 @@
 package middleware
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-)
-
-var (
-	// An authorization request has been denied.
-	ErrUnauthorized = status.Error(codes.PermissionDenied, "unauthorized")
-
-	// The authorization policy returned no result for the requested decision.
-	ErrNoDecision = errors.New("authorizer returned no results for request decision")
-
-	// Missing required configuration value.
-	ErrMissingArgument = errors.New("missing authorization argument")
 )
 
 // Config holds global authorization options that apply to all requests.

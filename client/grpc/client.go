@@ -1,12 +1,9 @@
-package authorizer
+package grpc
 
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/config"
-	"github.com/aserto-dev/aserto-go/internal/grpcc"
-
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	"github.com/aserto-dev/aserto-go/client"
 	dir "github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
 	policy "github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
@@ -16,7 +13,7 @@ import (
 
 // Client provides access to services only available usign gRPC.
 type Client struct {
-	conn *grpcc.Connection
+	conn *Connection
 
 	// Directory provides methods for interacting with the Aserto user directory.
 	// Use the Directory client to manage users, application, and roles.
@@ -30,8 +27,8 @@ type Client struct {
 }
 
 // NewClient creates a Client with the specified connection options.
-func NewClient(ctx context.Context, opts ...config.ConnectionOption) (*Client, error) {
-	connection, err := grpcc.NewConnection(ctx, opts...)
+func New(ctx context.Context, opts ...client.ConnectionOption) (*Client, error) {
+	connection, err := NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "create grpc client failed")
 	}
@@ -42,14 +39,4 @@ func NewClient(ctx context.Context, opts ...config.ConnectionOption) (*Client, e
 		Policy:    policy.NewPolicyClient(connection.Conn),
 		Info:      info.NewInfoClient(connection.Conn),
 	}, err
-}
-
-// NewAuthorizerClient creates a new AuthorizerClient using the specified connection options.
-func NewAuthorizerClient(ctx context.Context, opts ...config.ConnectionOption) (authz.AuthorizerClient, error) {
-	connection, err := grpcc.NewConnection(ctx, opts...)
-	if err != nil {
-		return nil, errors.Wrap(err, "create grpc client failed")
-	}
-
-	return authz.NewAuthorizerClient(connection.Conn), nil
 }

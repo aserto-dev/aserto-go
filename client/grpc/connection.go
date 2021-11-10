@@ -1,11 +1,11 @@
-package grpcc
+package grpc
 
 import (
 	"context"
 	"io/ioutil"
 
-	"github.com/aserto-dev/aserto-go/config"
-	"github.com/aserto-dev/aserto-go/internal"
+	"github.com/aserto-dev/aserto-go/client"
+	"github.com/aserto-dev/aserto-go/client/internal"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -17,8 +17,8 @@ type Connection struct {
 	TenantID string
 }
 
-func NewConnection(ctx context.Context, opts ...config.ConnectionOption) (*Connection, error) {
-	options := config.NewConnectionOptions(opts...)
+func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Connection, error) {
+	options := client.NewConnectionOptions(opts...)
 
 	tlsConf, err := internal.TLSConfig(options.Insecure)
 	if err != nil {

@@ -3,8 +3,8 @@ package tenant
 import (
 	"context"
 
-	"github.com/aserto-dev/aserto-go/config"
-	"github.com/aserto-dev/aserto-go/internal/grpcc"
+	"github.com/aserto-dev/aserto-go/client"
+	"github.com/aserto-dev/aserto-go/client/grpc"
 
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 	account "github.com/aserto-dev/go-grpc/aserto/tenant/account/v1"
@@ -20,7 +20,7 @@ import (
 
 // Client tenant gRPC connection.
 type Client struct {
-	conn        *grpcc.Connection
+	conn        *grpc.Connection
 	Account     account.AccountClient
 	Connections connection.ConnectionClient
 	Onboarding  onboarding.OnboardingClient
@@ -32,8 +32,8 @@ type Client struct {
 }
 
 // New creates a tenant Client with the specified connection options.
-func New(ctx context.Context, opts ...config.ConnectionOption) (*Client, error) {
-	conn, err := grpcc.NewConnection(ctx, opts...)
+func New(ctx context.Context, opts ...client.ConnectionOption) (*Client, error) {
+	conn, err := grpc.NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "create grpc client failed")
 	}

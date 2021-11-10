@@ -1,12 +1,12 @@
-package httpmw
+package http
 
 import (
 	"fmt"
 	"net/http"
 	"strings"
 
-	intmw "github.com/aserto-dev/aserto-go/internal/middleware"
 	"github.com/aserto-dev/aserto-go/middleware"
+	"github.com/aserto-dev/aserto-go/middleware/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -33,7 +33,7 @@ type Config = middleware.Config
 //   authorization request in the form of a structpb.Struct representing a JSON object.
 type Middleware struct {
 	client  authz.AuthorizerClient
-	builder intmw.IsRequestBuilder
+	builder internal.IsRequestBuilder
 
 	identityMapper StringMapper
 	policyMapper   StringMapper
@@ -51,10 +51,10 @@ type (
 )
 
 // NewAuthorizer creates a new Authorizer with default mappers.
-func NewAuthorizer(client authz.AuthorizerClient, conf Config) *Middleware {
+func New(client authz.AuthorizerClient, conf Config) *Middleware {
 	return &Middleware{
 		client:         client,
-		builder:        intmw.IsRequestBuilder{Config: conf},
+		builder:        internal.IsRequestBuilder{Config: conf},
 		identityMapper: identityHeaderMapper("Authorization"),
 		resourceMapper: noResourceMapper,
 		policyMapper:   uRLPolicyPathMapper(conf.PolicyRoot),
