@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/aserto-dev/aserto-go/middleware"
 	"github.com/aserto-dev/aserto-go/middleware/grpc/internal/pbutil"
@@ -169,12 +168,7 @@ func contextMetadataIdentityMapper(key string) StringMapper {
 
 func contextValueIdentityMapper(value string) StringMapper {
 	return func(ctx context.Context, _ interface{}) string {
-		identity, ok := ctx.Value(value).(string)
-		if ok {
-			return identity
-		}
-
-		return ""
+		return internal.ValueOrEmpty(ctx, value)
 	}
 }
 
@@ -187,7 +181,7 @@ func policyPath(path string) StringMapper {
 func methodPolicyMapper(policyRoot string) StringMapper {
 	return func(ctx context.Context, _ interface{}) string {
 		method, _ := grpc.Method(ctx)
-		return fmt.Sprintf("%s.%s", policyRoot, strings.ReplaceAll(strings.Trim(method, "/"), "/", "."))
+		return fmt.Sprintf("%s.%s", policyRoot, internal.ToPolicyPath(method))
 	}
 }
 

@@ -55,9 +55,9 @@ func New(client authz.AuthorizerClient, conf Config) *Middleware {
 	return &Middleware{
 		client:         client,
 		builder:        internal.IsRequestBuilder{Config: conf},
-		identityMapper: identityHeaderMapper("Authorization"),
+		identityMapper: headerIdentityMapper("Authorization"),
 		resourceMapper: noResourceMapper,
-		policyMapper:   uRLPolicyPathMapper(conf.PolicyRoot),
+		policyMapper:   urlPolicyPathMapper(conf.PolicyRoot),
 	}
 }
 
@@ -85,7 +85,13 @@ func (authorizer *Middleware) Handler(next http.Handler) http.Handler {
 // WithIdentityFromHeader sets an identity mapper that reads the caller's identity from the specified
 // request header.
 func (authorizer *Middleware) WithIdentityFromHeader(header string) *Middleware {
-	authorizer.identityMapper = identityHeaderMapper(header)
+	authorizer.identityMapper = headerIdentityMapper(header)
+	return authorizer
+}
+
+// WithIdentityFromContextValue extracts caller identity from a context value in the incoming message.
+func (authorizer *Middleware) WithIdentityFromContextValue(value string) *Middleware {
+	authorizer.identityMapper = contextValueIdentityMapper(value)
 	return authorizer
 }
 
@@ -122,9 +128,15 @@ func policyPath(path string) StringMapper {
 	}
 }
 
-func identityHeaderMapper(header string) StringMapper {
+func headerIdentityMapper(header string) StringMapper {
 	return func(r *http.Request) string {
 		return r.Header.Get(header)
+	}
+}
+
+func contextValueIdentityMapper(key string) StringMapper {
+	return func(r *http.Request) string {
+		return internal.ValueOrEmpty(r.Context(), key)
 	}
 }
 
@@ -133,17 +145,14 @@ func noResourceMapper(*http.Request) *structpb.Struct {
 	return resource
 }
 
-func uRLPolicyPathMapper(policyRoot string) StringMapper {
+func urlPolicyPathMapper(policyRoot string) StringMapper {
 	return func(r *http.Request) string {
 		pathVars := mux.Vars(r)
 		if len(pathVars) > 0 {
 			return gorillaPathMapper(policyRoot, r)
 		}
 
-		path := strings.Trim(r.URL.Path, "/")
-		endpoint := strings.ReplaceAll(path, "/", ".")
-
-		return fmt.Sprintf("%s.%s.%s", policyRoot, r.Method, endpoint)
+		return fmt.Sprintf("%s.%s.%s", policyRoot, r.Method, internal.ToPolicyPath(r.URL.Path))
 	}
 }
 
