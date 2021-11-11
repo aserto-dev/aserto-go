@@ -32,7 +32,7 @@ func TestFieldMaskIsValid(t *testing.T) {
 		"policy_context.id",
 	)
 	if err != nil {
-		t.Errorf("failed to create field mask: %w", err)
+		t.Errorf("failed to create field mask: %v", err)
 	}
 
 	if !mask.IsValid(msg) {
@@ -45,7 +45,7 @@ func TestFieldMaskIsValid(t *testing.T) {
 		return func(t *testing.T) {
 			selection, err := pbutil.Select(msg, paths...)
 			if err != nil {
-				t.Errorf("select failed on policy_context.path: %w", err)
+				t.Errorf("select failed on policy_context.path: %v", err)
 			}
 
 			actual := selection.AsMap()

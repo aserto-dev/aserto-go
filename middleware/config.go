@@ -3,15 +3,10 @@ package middleware
 import (
 	"fmt"
 	"strings"
-
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
 )
 
 // Config holds global authorization options that apply to all requests.
 type Config struct {
-	// IdentityType describes how identities are interpreted.
-	IdentityType api.IdentityType
-
 	// PolicyID is the ID of the aserto policy being queried for authorization.
 	PolicyID string
 
@@ -29,10 +24,6 @@ type Config struct {
 // Validate returns an error if any of the required configuration fields are missing.
 func (c *Config) Validate() error {
 	missing := []string{}
-
-	if c.IdentityType == api.IdentityType_IDENTITY_TYPE_UNKNOWN {
-		missing = append(missing, "IdentityType")
-	}
 
 	if c.PolicyID == "" {
 		missing = append(missing, "PolicyID")

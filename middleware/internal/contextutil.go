@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func ValueOrEmpty(ctx context.Context, key string) string {
+func ValueOrEmpty(ctx context.Context, key interface{}) string {
 	identity, ok := ctx.Value(key).(string)
 	if ok {
 		return identity

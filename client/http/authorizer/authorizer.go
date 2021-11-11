@@ -18,6 +18,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+type AuthorizerClient = authz.AuthorizerClient
+
 // Error codes for REST authorizer.
 var (
 	ErrHTTPFailure  = errors.New("received http failure response")
@@ -30,7 +32,7 @@ type authorizer struct {
 }
 
 // NewAuthorizerClient return a new REST authorizer with the specified options.
-func NewAuthorizerClient(opts ...client.ConnectionOption) (authz.AuthorizerClient, error) {
+func New(opts ...client.ConnectionOption) (AuthorizerClient, error) {
 	options := client.NewConnectionOptions(opts...)
 
 	tlsConf, err := internal.TLSConfig(options.Insecure)

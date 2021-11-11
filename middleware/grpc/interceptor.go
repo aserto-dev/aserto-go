@@ -8,27 +8,33 @@ import (
 	"github.com/aserto-dev/aserto-go/middleware/grpc/internal/pbutil"
 	"github.com/aserto-dev/aserto-go/middleware/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	"github.com/aserto-dev/go-grpc/aserto/api/v1"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-type Config = middleware.Config
+type (
+	Config           = middleware.Config
+	AuthorizerClient = authz.AuthorizerClient
+)
 
 // ServerInterceptor implements gRPC unary and stream server interceptors that perform authorization.
 // It provides configuration options to control how authorization parameters like caller identity, and
 // policy path are extracted from incoming RPC calls.
 type ServerInterceptor struct {
-	client  authz.AuthorizerClient
-	builder internal.IsRequestBuilder
+	Identity *IdentityBuilder
 
-	identityMapper StringMapper
+	client AuthorizerClient
+	// builder internal.IsRequestBuilder
+	request authz.IsRequest
+
 	policyMapper   StringMapper
 	resourceMapper StructMapper
 }
 
 type (
+
 	// StringMapper functions are used to extract string values from incoming messages.
 	// They are used to define identity and policy mappers.
 	StringMapper func(context.Context, interface{}) string
@@ -39,32 +45,20 @@ type (
 )
 
 // NewServerInterceptor returns a new ServerInterceptor from the specified authorizer client and configuration.
-func New(client authz.AuthorizerClient, conf Config) (*ServerInterceptor, error) {
+func New(client AuthorizerClient, conf Config) *ServerInterceptor {
 	return &ServerInterceptor{
-		client:         client,
-		builder:        internal.IsRequestBuilder{Config: conf},
-		identityMapper: noIdentityMapper,
+		Identity: &IdentityBuilder{},
+		client:   client,
+		request: authz.IsRequest{
+			IdentityContext: &api.IdentityContext{},
+			PolicyContext: &api.PolicyContext{
+				Id:        conf.PolicyID,
+				Decisions: []string{conf.Decision},
+			},
+		},
 		policyMapper:   methodPolicyMapper(conf.PolicyRoot),
 		resourceMapper: noResourceMapper,
-	}, nil
-}
-
-// WithIdentityFromMetadata extracts caller identity from a metadata field in the incoming message.
-func (interceptor *ServerInterceptor) WithIdentityFromMetadata(field string) *ServerInterceptor {
-	interceptor.identityMapper = contextMetadataIdentityMapper(field)
-	return interceptor
-}
-
-// WithIdentityFromContextValue extracts caller identity from a context value in the incoming message.
-func (interceptor *ServerInterceptor) WithIdentityFromContextValue(value string) *ServerInterceptor {
-	interceptor.identityMapper = contextValueIdentityMapper(value)
-	return interceptor
-}
-
-// WithIdentityMapper takes a custom StringMapper for extracting caller identity from incoming messages.
-func (interceptor *ServerInterceptor) WithIdentityMapper(mapper StringMapper) *ServerInterceptor {
-	interceptor.identityMapper = mapper
-	return interceptor
+	}
 }
 
 // WithPolicyPath sets a path in the authorization poilcy to be used for all incoming messages.
@@ -127,13 +121,11 @@ func (interceptor *ServerInterceptor) Stream() grpc.StreamServerInterceptor {
 }
 
 func (interceptor *ServerInterceptor) authorize(ctx context.Context, req interface{}) error {
-	interceptor.builder.SetPolicyPath(interceptor.policyMapper(ctx, req))
-	interceptor.builder.SetIdentity(interceptor.identityMapper(ctx, req))
-	interceptor.builder.SetResource(interceptor.resourceMapper(ctx, req))
+	interceptor.request.PolicyContext.Path = interceptor.policyMapper(ctx, req)
+	interceptor.request.IdentityContext = interceptor.Identity.Build(ctx, req)
+	interceptor.request.ResourceContext = interceptor.resourceMapper(ctx, req)
 
-	isRequest := interceptor.builder.Build()
-
-	resp, err := interceptor.client.Is(ctx, isRequest)
+	resp, err := interceptor.client.Is(ctx, &interceptor.request)
 	if err != nil {
 		return fmt.Errorf("authorization call failed: %w", err)
 	}
@@ -147,29 +139,6 @@ func (interceptor *ServerInterceptor) authorize(ctx context.Context, req interfa
 	}
 
 	return nil
-}
-
-func noIdentityMapper(_ context.Context, _ interface{}) string {
-	return ""
-}
-
-func contextMetadataIdentityMapper(key string) StringMapper {
-	return func(ctx context.Context, _ interface{}) string {
-		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			id := md.Get(key)
-			if len(id) > 0 {
-				return id[0]
-			}
-		}
-
-		return ""
-	}
-}
-
-func contextValueIdentityMapper(value string) StringMapper {
-	return func(ctx context.Context, _ interface{}) string {
-		return internal.ValueOrEmpty(ctx, value)
-	}
 }
 
 func policyPath(path string) StringMapper {
