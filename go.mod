@@ -10,6 +10,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/magefile/mage v1.11.0
 	github.com/pkg/errors v0.9.1
+	github.com/tidwall/gjson v1.9.3 // indirect
 	golang.org/x/net v0.0.0-20210503060351-7fd8e65b6420 // indirect
 	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
 	google.golang.org/grpc v1.41.0
