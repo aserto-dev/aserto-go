@@ -1,10 +1,10 @@
-package grpcc
+package internal
 
 import (
 	"crypto/tls"
 )
 
-func tlsConfig(insecure bool) (*tls.Config, error) {
+func TLSConfig(insecure bool) (*tls.Config, error) {
 	var tlsConf tls.Config
 
 	if insecure {
