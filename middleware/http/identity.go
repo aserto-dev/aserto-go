@@ -10,28 +10,50 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 )
 
+// IdentityMapper functions are used to specify the identity of an HTTP request caller.
+// The middleware.Identity parameter is used to set the properties of the identity used in authorization
+// requests.
 type IdentityMapper func(*http.Request, middleware.Identity)
 
+// IdentityBuilder is used to specify caller identity information to be used in authorization requests.
 type IdentityBuilder struct {
 	Identity internal.Identity
 	mapper   IdentityMapper
 }
 
+// Static values
+
+// Call JWT() to indicate that the user's identity is expressed as a string-encoded JWT.
+//
+// JWT() is always called in conjunction with another method that provides the user ID itself.
+// For example:
+//
+//  idBuilder.JWT().FromHeader("Authorization")
 func (b *IdentityBuilder) JWT() *IdentityBuilder {
 	b.Identity.JWT()
 	return b
 }
 
+// Call Subject() to indicate that the user's identity is a subject name (email, userid, etc.).
+
+// Subject() is always used in conjunction with another methd that provides the user ID itself.
+// For example:
+//
+//  idBuilder.Subject().FromContextValue("username")
 func (b *IdentityBuilder) Subject() *IdentityBuilder {
 	b.Identity.Subject()
 	return b
 }
 
+// Call None() to indicate that requests are unauthenticated.
 func (b *IdentityBuilder) None() *IdentityBuilder {
 	b.Identity.None()
 	return b
 }
 
+// Call ID(...) to set the user's identity. If neither JWT() or Subject() are called too, IdentityMapper
+// tries to infer whether the specified identity is a JWT or not.
+// Passing an empty string is the same as calling .None() and results in an authorization check for anonymous access.
 func (b *IdentityBuilder) ID(identity string) *IdentityBuilder {
 	b.Identity.ID(identity)
 	return b
@@ -67,6 +89,8 @@ func (b *IdentityBuilder) FromHeader(header ...string) *IdentityBuilder {
 }
 
 // FromContextValue extracts caller identity from a value in the incoming request context.
+//
+// If the value is not present, not a string, or an empty string then the request is considered anonymous.
 func (b *IdentityBuilder) FromContextValue(key interface{}) *IdentityBuilder {
 	b.mapper = func(r *http.Request, identity middleware.Identity) {
 		identity.ID(internal.ValueOrEmpty(r.Context(), key))
@@ -75,12 +99,15 @@ func (b *IdentityBuilder) FromContextValue(key interface{}) *IdentityBuilder {
 	return b
 }
 
+// Mapper allows callers to use their own custom function to extract identity from incoming requests.
+//
+// The specified IdentityMapper is called on each incoming request to set the caller's identity.
 func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 	b.mapper = mapper
 	return b
 }
 
-func (b *IdentityBuilder) Build(r *http.Request) *api.IdentityContext {
+func (b *IdentityBuilder) build(r *http.Request) *api.IdentityContext {
 	if b.mapper != nil {
 		b.mapper(r, &b.Identity)
 	}

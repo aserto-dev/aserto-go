@@ -16,27 +16,45 @@ type IdentityBuilder struct {
 	mapper   IdentityMapper
 }
 
+// Static values
+
+// Call JWT() to indicate that the user's identity is expressed as a string-encoded JWT.
+//
+// JWT() is always called in conjunction with another method that provides the user ID itself.
+// For example:
+//
+//  idBuilder.JWT().FromHeader("Authorization")
 func (b *IdentityBuilder) JWT() *IdentityBuilder {
 	b.Identity.JWT()
 	return b
 }
 
+// Call Subject() to indicate that the user's identity is a subject name (email, userid, etc.).
+
+// Subject() is always used in conjunction with another methd that provides the user ID itself.
+// For example:
+//
+//  idBuilder.Subject().FromContextValue("username")
 func (b *IdentityBuilder) Subject() *IdentityBuilder {
 	b.Identity.Subject()
 	return b
 }
 
+// Call None() to indicate that requests are unauthenticated.
 func (b *IdentityBuilder) None() *IdentityBuilder {
 	b.Identity.None()
 	return b
 }
 
+// Call ID(...) to set the user's identity. If neither JWT() or Subject() are called too, IdentityMapper
+// tries to infer whether the specified identity is a JWT or not.
+// Passing an empty string is the same as calling .None() and results in an authorization check for anonymous access.
 func (b *IdentityBuilder) ID(identity string) *IdentityBuilder {
 	b.Identity.ID(identity)
 	return b
 }
 
-// WithIdentityFromMetadata extracts caller identity from a metadata field in the incoming message.
+// FromMetadata extracts caller identity from a metadata field in the incoming message.
 func (b *IdentityBuilder) FromMetadata(field string) *IdentityBuilder {
 	b.mapper = func(ctx context.Context, _ interface{}, identity middleware.Identity) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {

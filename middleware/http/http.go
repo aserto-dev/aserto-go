@@ -18,23 +18,36 @@ type (
 	AuthorizerClient = authorizer.AuthorizerClient
 )
 
-// Middleware configures the behavior of the authorization middleware.
-//
-// When handling an incoming request, the middleware uses mapper functions to
-// retrieve authorization parameters from the request.
-// Middleware provides mappers for commonly used scenarios and users can attach
-// their own mappers to perform custom logic.
-//
-// Identity: The identity mapper examines the message and returns a string represeting the caller's
-//   identity, such as a JWT, a user-name, email, etc. An empty string implied an unauthenticated caller.
-//   The default identity mapper reads the value of the "Authorization" HTTP header, if present.
-//
-// Policy: The policy mapper examines the message and returns a string representing the path of the
-//   authorization rules to query within the policy (e.g. "peoplefinder.POST.api.users.__id").
-//   The default policy mapper combines the configured policy root, http method, and URL path.
-//
-// Resource: The optional resource mapper examines the message and returns additional data to include in the
-//   authorization request in the form of a structpb.Struct representing a JSON object.
+/*
+Middleware integrates Aserto authorization into HTTP servers.
+
+To authorize incoming requests, the middleware needs information about:
+
+1. The user making the request.
+
+2. The Aserto authorization policy to evaluate.
+
+3. Optional, additional input data to the authorization policy.
+
+The values for these parameters can be set globally or extracted dynamically from incoming messages.
+
+// TODO: update...
+When handling an incoming request, the middleware uses mapper functions to
+retrieve authorization parameters from the request.
+Middleware provides mappers for commonly used scenarios and users can attach
+their own mappers to perform custom logic.
+
+Identity: The identity mapper examines the message and returns a string represeting the caller's
+  identity, such as a JWT, a user-name, email, etc. An empty string implied an unauthenticated caller.
+  The default identity mapper reads the value of the "Authorization" HTTP header, if present.
+
+Policy: The policy mapper examines the message and returns a string representing the path of the
+  authorization rules to query within the policy (e.g. "peoplefinder.POST.api.users.__id").
+  The default policy mapper combines the configured policy root, http method, and URL path.
+
+Resource: The optional resource mapper examines the message and returns additional data to include in the
+  authorization request in the form of a structpb.Struct representing a JSON object.
+*/
 type Middleware struct {
 	Identity *IdentityBuilder
 
@@ -59,10 +72,9 @@ type (
 // NewAuthorizer creates a new Authorizer with default mappers.
 func New(client AuthorizerClient, conf Config) *Middleware {
 	return &Middleware{
-		Identity: (&IdentityBuilder{}).FromHeader("Authorization"),
-		policy:   *internal.DefaultPolicyContext(conf),
-		client:   client,
-		// builder:        internal.IsRequestBuilder{Config: conf},
+		client:         client,
+		Identity:       (&IdentityBuilder{}).FromHeader("Authorization"),
+		policy:         *internal.DefaultPolicyContext(conf),
 		resourceMapper: noResourceMapper,
 		policyMapper:   urlPolicyPathMapper(conf.PolicyRoot),
 	}
@@ -78,7 +90,7 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 		resp, err := m.client.Is(
 			r.Context(),
 			&authorizer.IsRequest{
-				IdentityContext: m.Identity.Build(r),
+				IdentityContext: m.Identity.build(r),
 				PolicyContext:   &m.policy,
 				ResourceContext: m.resourceMapper(r),
 			},

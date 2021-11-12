@@ -19,15 +19,17 @@ type (
 	AuthorizerClient = authz.AuthorizerClient
 )
 
-// ServerInterceptor implements gRPC unary and stream server interceptors that perform authorization.
+// Middleware implements gRPC unary and stream server interceptors that perform authorization.
 // It provides configuration options to control how authorization parameters like caller identity, and
 // policy path are extracted from incoming RPC calls.
-type ServerInterceptor struct {
+type Middleware struct {
 	Identity *IdentityBuilder
 
 	client AuthorizerClient
 	// builder internal.IsRequestBuilder
-	request authz.IsRequest
+	// request authz.IsRequest
+
+	policy api.PolicyContext
 
 	policyMapper   StringMapper
 	resourceMapper StructMapper
@@ -44,53 +46,50 @@ type (
 )
 
 // NewServerInterceptor returns a new ServerInterceptor from the specified authorizer client and configuration.
-func New(client AuthorizerClient, conf Config) *ServerInterceptor {
-	return &ServerInterceptor{
-		Identity: &IdentityBuilder{},
-		client:   client,
-		request: authz.IsRequest{
-			IdentityContext: &api.IdentityContext{},
-			PolicyContext:   internal.DefaultPolicyContext(conf),
-		},
+func New(client AuthorizerClient, conf Config) *Middleware {
+	return &Middleware{
+		client:         client,
+		Identity:       &IdentityBuilder{},
+		policy:         *internal.DefaultPolicyContext(conf),
 		policyMapper:   methodPolicyMapper(conf.PolicyRoot),
 		resourceMapper: noResourceMapper,
 	}
 }
 
 // WithPolicyPath sets a path in the authorization poilcy to be used for all incoming messages.
-func (interceptor *ServerInterceptor) WithPolicyPath(path string) *ServerInterceptor {
-	interceptor.policyMapper = policyPath(path)
-	return interceptor
+func (m *Middleware) WithPolicyPath(path string) *Middleware {
+	m.policyMapper = policyPath(path)
+	return m
 }
 
 // WithPolicyPathMapper takes a custom StringMapper for extracting the authorization policy path form
 // incoming message.
-func (interceptor *ServerInterceptor) WithPolicyPathMapper(mapper StringMapper) *ServerInterceptor {
-	interceptor.policyMapper = mapper
-	return interceptor
+func (m *Middleware) WithPolicyPathMapper(mapper StringMapper) *Middleware {
+	m.policyMapper = mapper
+	return m
 }
 
-func (interceptor *ServerInterceptor) WithResourceFromFields(fields ...string) *ServerInterceptor {
-	interceptor.resourceMapper = messageResourceMapper(fields...)
-	return interceptor
+func (m *Middleware) WithResourceFromFields(fields ...string) *Middleware {
+	m.resourceMapper = messageResourceMapper(fields...)
+	return m
 }
 
 // WithResourceMapper takes a custom StructMapper for extracting the authorization resource context from
 // incoming messages.
-func (interceptor *ServerInterceptor) WithResourceMapper(mapper StructMapper) *ServerInterceptor {
-	interceptor.resourceMapper = mapper
-	return interceptor
+func (m *Middleware) WithResourceMapper(mapper StructMapper) *Middleware {
+	m.resourceMapper = mapper
+	return m
 }
 
 // Unary returns a grpc.UnaryServiceInterceptor that authorizes incoming messages.
-func (interceptor *ServerInterceptor) Unary() grpc.UnaryServerInterceptor {
+func (m *Middleware) Unary() grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (interface{}, error) {
-		if err := interceptor.authorize(ctx, req); err != nil {
+		if err := m.authorize(ctx, req); err != nil {
 			return nil, err
 		}
 
@@ -99,7 +98,7 @@ func (interceptor *ServerInterceptor) Unary() grpc.UnaryServerInterceptor {
 }
 
 // Stream returns a grpc.StreamServerInterceptor that authorizes incoming messages.
-func (interceptor *ServerInterceptor) Stream() grpc.StreamServerInterceptor {
+func (m *Middleware) Stream() grpc.StreamServerInterceptor {
 	return func(
 		srv interface{},
 		stream grpc.ServerStream,
@@ -108,7 +107,7 @@ func (interceptor *ServerInterceptor) Stream() grpc.StreamServerInterceptor {
 	) error {
 		ctx := stream.Context()
 
-		if err := interceptor.authorize(ctx, nil); err != nil {
+		if err := m.authorize(ctx, nil); err != nil {
 			return err
 		}
 
@@ -116,12 +115,19 @@ func (interceptor *ServerInterceptor) Stream() grpc.StreamServerInterceptor {
 	}
 }
 
-func (interceptor *ServerInterceptor) authorize(ctx context.Context, req interface{}) error {
-	interceptor.request.PolicyContext.Path = interceptor.policyMapper(ctx, req)
-	interceptor.request.IdentityContext = interceptor.Identity.Build(ctx, req)
-	interceptor.request.ResourceContext = interceptor.resourceMapper(ctx, req)
+func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
+	if m.policyMapper != nil {
+		m.policy.Path = m.policyMapper(ctx, req)
+	}
 
-	resp, err := interceptor.client.Is(ctx, &interceptor.request)
+	resp, err := m.client.Is(
+		ctx,
+		&authz.IsRequest{
+			IdentityContext: m.Identity.Build(ctx, req),
+			PolicyContext:   &m.policy,
+			ResourceContext: m.resourceMapper(ctx, req),
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("authorization call failed: %w", err)
 	}
