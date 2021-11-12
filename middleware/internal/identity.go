@@ -15,8 +15,16 @@ func (id *Identity) JWT() {
 	id.context.Type = api.IdentityType_IDENTITY_TYPE_JWT
 }
 
+func (id *Identity) IsJWT() bool {
+	return id.context.Type == api.IdentityType_IDENTITY_TYPE_JWT
+}
+
 func (id *Identity) Subject() {
 	id.context.Type = api.IdentityType_IDENTITY_TYPE_SUB
+}
+
+func (id *Identity) IsSubject() bool {
+	return id.context.Type == api.IdentityType_IDENTITY_TYPE_SUB
 }
 
 func (id *Identity) None() {

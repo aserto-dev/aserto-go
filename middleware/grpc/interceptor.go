@@ -34,7 +34,6 @@ type ServerInterceptor struct {
 }
 
 type (
-
 	// StringMapper functions are used to extract string values from incoming messages.
 	// They are used to define identity and policy mappers.
 	StringMapper func(context.Context, interface{}) string
@@ -51,10 +50,7 @@ func New(client AuthorizerClient, conf Config) *ServerInterceptor {
 		client:   client,
 		request: authz.IsRequest{
 			IdentityContext: &api.IdentityContext{},
-			PolicyContext: &api.PolicyContext{
-				Id:        conf.PolicyID,
-				Decisions: []string{conf.Decision},
-			},
+			PolicyContext:   internal.DefaultPolicyContext(conf),
 		},
 		policyMapper:   methodPolicyMapper(conf.PolicyRoot),
 		resourceMapper: noResourceMapper,
@@ -150,6 +146,12 @@ func policyPath(path string) StringMapper {
 func methodPolicyMapper(policyRoot string) StringMapper {
 	return func(ctx context.Context, _ interface{}) string {
 		method, _ := grpc.Method(ctx)
+		path := internal.ToPolicyPath(method)
+
+		if policyRoot == "" {
+			return path
+		}
+
 		return fmt.Sprintf("%s.%s", policyRoot, internal.ToPolicyPath(method))
 	}
 }

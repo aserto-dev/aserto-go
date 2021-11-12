@@ -60,10 +60,8 @@ type (
 func New(client AuthorizerClient, conf Config) *Middleware {
 	return &Middleware{
 		Identity: (&IdentityBuilder{}).FromHeader("Authorization"),
-		policy: api.PolicyContext{
-			Id: conf.PolicyID,
-		},
-		client: client,
+		policy:   *internal.DefaultPolicyContext(conf),
+		client:   client,
 		// builder:        internal.IsRequestBuilder{Config: conf},
 		resourceMapper: noResourceMapper,
 		policyMapper:   urlPolicyPathMapper(conf.PolicyRoot),

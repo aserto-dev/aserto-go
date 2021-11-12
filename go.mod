@@ -8,6 +8,8 @@ require (
 	github.com/aserto-dev/mage-loot v0.4.12
 	github.com/fatih/color v1.12.0 // indirect
 	github.com/gorilla/mux v1.8.0
+	github.com/lestrrat-go/jwx v1.2.10 // indirect
+	github.com/lestrrat-go/pdebug v0.0.0-20200204225717-4d6bd78da58d // indirect
 	github.com/magefile/mage v1.11.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
