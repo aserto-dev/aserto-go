@@ -99,6 +99,22 @@ func (b *IdentityBuilder) FromContextValue(key interface{}) *IdentityBuilder {
 	return b
 }
 
+// FromHostname extracts caller identity from the incoming request's host name.
+//
+// The function returns the specified hostname segment. Indexing is zero-based and starts from the left.
+// Negative indices start from the right.
+//
+// For Example, if the hostname is "service.user.company.com" then both FromHostname(1) and
+// FromHostname(-3) return the value "user".
+func (b *IdentityBuilder) FromHostname(segment int) *IdentityBuilder {
+	b.mapper = func(r *http.Request, identity middleware.Identity) {
+		hostname := r.URL.Hostname()
+		identity.ID(hostnameSegment(hostname, segment))
+	}
+
+	return b
+}
+
 // Mapper allows callers to use their own custom function to extract identity from incoming requests.
 //
 // The specified IdentityMapper is called on each incoming request to set the caller's identity.
@@ -127,4 +143,18 @@ func (b *IdentityBuilder) fromAuthzHeader(value string) string {
 	}
 
 	return value
+}
+
+func hostnameSegment(hostname string, level int) string {
+	parts := strings.Split(hostname, ".")
+
+	if level < 0 {
+		level += len(parts)
+	}
+
+	if 0 <= level && level < len(parts) {
+		return parts[level]
+	}
+
+	return ""
 }
