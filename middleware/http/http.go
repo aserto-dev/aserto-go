@@ -139,7 +139,11 @@ func urlPolicyPathMapper(policyRoot string) StringMapper {
 			return gorillaPathMapper(policyRoot, r)
 		}
 
-		return fmt.Sprintf("%s.%s.%s", policyRoot, r.Method, internal.ToPolicyPath(r.URL.Path))
+		if policyRoot != "" {
+			policyRoot += "."
+		}
+
+		return fmt.Sprintf("%s%s.%s", policyRoot, r.Method, internal.ToPolicyPath(r.URL.Path))
 	}
 }
 

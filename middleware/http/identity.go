@@ -152,7 +152,7 @@ func hostnameSegment(hostname string, level int) string {
 		level += len(parts)
 	}
 
-	if 0 <= level && level < len(parts) {
+	if level >= 0 && level < len(parts) {
 		return parts[level]
 	}
 

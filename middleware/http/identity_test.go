@@ -1,4 +1,4 @@
-package http
+package http // nolint:testpackage  // testing unexported logic
 
 import (
 	"testing"
@@ -6,13 +6,15 @@ import (
 	"gotest.tools/assert"
 )
 
+type TestCase struct {
+	name     string
+	hostname string
+	level    int
+	expected string
+}
+
 func TestHostnameSegment(t *testing.T) {
-	testCases := []struct {
-		name     string
-		hostname string
-		level    int
-		expected string
-	}{
+	testCases := []TestCase{
 		{"should accept a valid positive index", "user.example.com", 0, "user"},
 		{"should accept a valid negative index", "com.example.user", -1, "user"},
 		{"should be empty if index is too high", "user.example.com", 5, ""},
@@ -21,9 +23,13 @@ func TestHostnameSegment(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		t.Run(test.name, func(tt *testing.T) {
-			actual := hostnameSegment(test.hostname, test.level)
-			assert.Equal(tt, test.expected, actual)
-		})
+		t.Run(test.name, hostnameSegmentTest(test))
+	}
+}
+
+func hostnameSegmentTest(test TestCase) func(*testing.T) {
+	return func(t *testing.T) {
+		actual := hostnameSegment(test.hostname, test.level)
+		assert.Equal(t, test.expected, actual)
 	}
 }
