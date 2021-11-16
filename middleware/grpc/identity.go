@@ -69,9 +69,9 @@ func (b *IdentityBuilder) FromMetadata(field string) *IdentityBuilder {
 }
 
 // WithIdentityFromContextValue extracts caller identity from a context value in the incoming message.
-func (b *IdentityBuilder) FromContextValue(value string) *IdentityBuilder {
+func (b *IdentityBuilder) FromContextValue(key interface{}) *IdentityBuilder {
 	b.mapper = func(ctx context.Context, _ interface{}, identity middleware.Identity) {
-		identity.ID(internal.ValueOrEmpty(ctx, value))
+		identity.ID(internal.ValueOrEmpty(ctx, key))
 	}
 
 	return b

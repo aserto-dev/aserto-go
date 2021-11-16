@@ -13,14 +13,14 @@ There are three kinds of identities:
 */
 type Identity interface {
 	// JWT indicates that ID should be interpreted as a JWT token.
-	JWT()
+	JWT() Identity
 
 	// Subject indicates that ID should be interpreted as a subject name (e.g. username, account ID, email, etc.).
-	Subject()
+	Subject() Identity
 
 	// None indicates that this Identity represents an unauthenticated caller.
-	None()
+	None() Identity
 
 	// ID sets the identity value - a string that represents a user ID or a JWT token.
-	ID(identity string)
+	ID(identity string) Identity
 }

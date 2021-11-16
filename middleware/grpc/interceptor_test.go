@@ -28,7 +28,7 @@ type testOptions struct {
 const DefaultPolicyPath = "policy.path"
 
 func NewTest(t *testing.T, name string, options *testOptions) *TestCase {
-	if options.Request == nil && options.PolicyPath == "" {
+	if options.ExpectedRequest == nil && options.PolicyPath == "" {
 		options.PolicyPath = DefaultPolicyPath
 	}
 

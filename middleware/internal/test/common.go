@@ -26,21 +26,21 @@ type TestCase struct {
 }
 
 type TestOptions struct {
-	Request    *authorizer.IsRequest
-	Reject     bool
-	PolicyPath string
+	ExpectedRequest *authorizer.IsRequest
+	Reject          bool
+	PolicyPath      string
 }
 
 func (opts *TestOptions) HasPolicy() bool {
-	return opts.Request != nil || opts.PolicyPath != ""
+	return opts.ExpectedRequest != nil || opts.PolicyPath != ""
 }
 
 func NewTest(t *testing.T, name string, options *TestOptions) *TestCase {
-	if options.Request == nil {
-		options.Request = Request(PolicyPath(options.PolicyPath))
+	if options.ExpectedRequest == nil {
+		options.ExpectedRequest = Request(PolicyPath(options.PolicyPath))
 	}
 
-	mockAuth := mock.New(t, options.Request, Decision(!options.Reject))
+	mockAuth := mock.New(t, options.ExpectedRequest, Decision(!options.Reject))
 
 	return &TestCase{Name: name, Client: mockAuth}
 }

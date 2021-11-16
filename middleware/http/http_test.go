@@ -72,7 +72,7 @@ func TestAuthorizer(t *testing.T) {
 			"policy mapper should override policy path",
 			&testOptions{
 				TestOptions: test.TestOptions{
-					Request: test.Request(test.PolicyPath(test.OverridePolicyPath)),
+					PolicyPath: test.OverridePolicyPath,
 				},
 				callback: func(mw *httpmw.Middleware) {
 					mw.WithPolicyPathMapper(
