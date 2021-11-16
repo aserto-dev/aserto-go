@@ -5,9 +5,10 @@ import (
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
 )
 
-func DefaultPolicyContext(conf middleware.Config) *api.PolicyContext {
+func DefaultPolicyContext(policy middleware.Policy) *api.PolicyContext {
 	return &api.PolicyContext{
-		Id:        conf.PolicyID,
-		Decisions: []string{conf.Decision},
+		Id:        policy.ID,
+		Path:      policy.Path,
+		Decisions: []string{policy.Decision},
 	}
 }

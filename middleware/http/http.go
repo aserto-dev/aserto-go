@@ -14,7 +14,7 @@ import (
 )
 
 type (
-	Config           = middleware.Config
+	Policy           = middleware.Policy
 	AuthorizerClient = authorizer.AuthorizerClient
 )
 
@@ -70,13 +70,18 @@ type (
 )
 
 // NewAuthorizer creates a new Authorizer with default mappers.
-func New(client AuthorizerClient, conf Config) *Middleware {
+func New(client AuthorizerClient, policy Policy) *Middleware {
+	policyMapper := urlPolicyPathMapper("")
+	if policy.Path != "" {
+		policyMapper = nil
+	}
+
 	return &Middleware{
 		client:         client,
 		Identity:       (&IdentityBuilder{}).FromHeader("Authorization"),
-		policy:         *internal.DefaultPolicyContext(conf),
+		policy:         *internal.DefaultPolicyContext(policy),
 		resourceMapper: noResourceMapper,
-		policyMapper:   urlPolicyPathMapper(conf.PolicyRoot),
+		policyMapper:   policyMapper,
 	}
 }
 
@@ -107,9 +112,8 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 	})
 }
 
-// WithPolicyPath sets a path to be used in all authorization requests.
-func (m *Middleware) WithPolicyPath(path string) *Middleware {
-	m.policy.Path = path
+func (m *Middleware) WithPolicyFromURL(prefix string) *Middleware {
+	m.policyMapper = urlPolicyPathMapper(prefix)
 	return m
 }
 
@@ -132,18 +136,18 @@ func noResourceMapper(*http.Request) *structpb.Struct {
 	return resource
 }
 
-func urlPolicyPathMapper(policyRoot string) StringMapper {
+func urlPolicyPathMapper(prefix string) StringMapper {
 	return func(r *http.Request) string {
 		pathVars := mux.Vars(r)
 		if len(pathVars) > 0 {
-			return gorillaPathMapper(policyRoot, r)
+			return gorillaPathMapper(prefix, r)
 		}
 
-		if policyRoot != "" {
-			policyRoot += "."
+		if prefix != "" {
+			prefix += "."
 		}
 
-		return fmt.Sprintf("%s%s.%s", policyRoot, r.Method, internal.ToPolicyPath(r.URL.Path))
+		return fmt.Sprintf("%s%s.%s", prefix, r.Method, internal.ToPolicyPath(r.URL.Path))
 	}
 }
 

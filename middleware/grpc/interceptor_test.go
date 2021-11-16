@@ -34,10 +34,10 @@ func NewTest(t *testing.T, name string, options *testOptions) *TestCase {
 
 	base := test.NewTest(t, name, &options.TestOptions)
 
-	mw := grpcmw.New(base.Client, test.Config())
+	mw := grpcmw.New(base.Client, test.Policy(DefaultPolicyPath))
 
 	if options.callback == nil {
-		mw.WithPolicyPath(DefaultPolicyPath).Identity.Subject().ID(test.DefaultUsername)
+		mw.Identity.Subject().ID(test.DefaultUsername)
 	} else {
 		options.callback(mw)
 	}

@@ -22,23 +22,27 @@ type testOptions struct {
 	callback           func(*httpmw.Middleware)
 }
 
+func (opts *testOptions) HasStatusCode() bool {
+	return opts.expectedStatusCode != 0
+}
+
 const DefaultPolicyPath = "GET.foo"
 
 func NewTest(t *testing.T, name string, options *testOptions) *TestCase {
-	if options.Request == nil && options.PolicyPath == "" {
+	if !options.HasPolicy() {
 		options.PolicyPath = DefaultPolicyPath
 	}
 
-	if options.expectedStatusCode == 0 {
+	if !options.HasStatusCode() {
 		options.expectedStatusCode = http.StatusOK
 	}
 
 	base := test.NewTest(t, name, &options.TestOptions)
 
-	mw := httpmw.New(base.Client, test.Config())
+	mw := httpmw.New(base.Client, test.Policy(""))
 
 	if options.callback == nil {
-		mw.WithPolicyPath(DefaultPolicyPath).Identity.Subject().ID(test.DefaultUsername)
+		mw.Identity.Subject().ID(test.DefaultUsername)
 	} else {
 		options.callback(mw)
 	}

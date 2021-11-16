@@ -15,7 +15,7 @@ import (
 )
 
 type (
-	Config           = middleware.Config
+	Policy           = middleware.Policy
 	AuthorizerClient = authz.AuthorizerClient
 )
 
@@ -46,20 +46,19 @@ type (
 )
 
 // NewServerInterceptor returns a new ServerInterceptor from the specified authorizer client and configuration.
-func New(client AuthorizerClient, conf Config) *Middleware {
+func New(client AuthorizerClient, policy Policy) *Middleware {
+	policyMapper := methodPolicyMapper("")
+	if policy.Path != "" {
+		policyMapper = nil
+	}
+
 	return &Middleware{
 		client:         client,
 		Identity:       &IdentityBuilder{},
-		policy:         *internal.DefaultPolicyContext(conf),
-		policyMapper:   methodPolicyMapper(conf.PolicyRoot),
+		policy:         *internal.DefaultPolicyContext(policy),
+		policyMapper:   policyMapper,
 		resourceMapper: noResourceMapper,
 	}
-}
-
-// WithPolicyPath sets a path in the authorization poilcy to be used for all incoming messages.
-func (m *Middleware) WithPolicyPath(path string) *Middleware {
-	m.policyMapper = policyPath(path)
-	return m
 }
 
 // WithPolicyPathMapper takes a custom StringMapper for extracting the authorization policy path form
@@ -141,12 +140,6 @@ func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 	}
 
 	return nil
-}
-
-func policyPath(path string) StringMapper {
-	return func(_ context.Context, _ interface{}) string {
-		return path
-	}
 }
 
 func methodPolicyMapper(policyRoot string) StringMapper {

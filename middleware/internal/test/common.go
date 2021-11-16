@@ -31,6 +31,10 @@ type TestOptions struct {
 	PolicyPath string
 }
 
+func (opts *TestOptions) HasPolicy() bool {
+	return opts.Request != nil || opts.PolicyPath != ""
+}
+
 func NewTest(t *testing.T, name string, options *TestOptions) *TestCase {
 	if options.Request == nil {
 		options.Request = Request(PolicyPath(options.PolicyPath))
@@ -41,8 +45,8 @@ func NewTest(t *testing.T, name string, options *TestOptions) *TestCase {
 	return &TestCase{Name: name, Client: mockAuth}
 }
 
-func Config() middleware.Config {
-	return middleware.Config{PolicyID: DefaultPolicyID, Decision: DefaultDecision}
+func Policy(path string) middleware.Policy {
+	return middleware.Policy{ID: DefaultPolicyID, Path: path, Decision: DefaultDecision}
 }
 
 func Decision(authorize bool) *authorizer.Decision {
