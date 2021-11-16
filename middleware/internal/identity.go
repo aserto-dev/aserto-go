@@ -46,5 +46,6 @@ func (id *Identity) Context() *api.IdentityContext {
 	if id.context.Identity == "" {
 		id.None()
 	}
+
 	return &id.context
 }

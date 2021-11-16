@@ -3,11 +3,12 @@ package authorizer
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/pkg/errors"
 
 	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/client/internal"
@@ -158,10 +159,12 @@ func (a *authorizer) postRequest(ctx context.Context, url string, message proto.
 		defer resp.Body.Close()
 
 		return nil,
-			fmt.Errorf("http request failed. status: '%s'. body: '%s': %w",
-				resp.Status,
-				tryReadText(resp.Body),
+			errors.Wrap(
 				ErrHTTPFailure,
+				fmt.Sprintf("http request failed. status: '%s'. body: '%s'",
+					resp.Status,
+					tryReadText(resp.Body),
+				),
 			)
 	}
 

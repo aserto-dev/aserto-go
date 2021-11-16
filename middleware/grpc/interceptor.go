@@ -9,6 +9,7 @@ import (
 	"github.com/aserto-dev/aserto-go/middleware/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -54,7 +55,7 @@ func New(client AuthorizerClient, policy Policy) *Middleware {
 
 	return &Middleware{
 		client:         client,
-		Identity:       &IdentityBuilder{},
+		Identity:       (&IdentityBuilder{}).FromMetadata("authorization"),
 		policy:         *internal.DefaultPolicyContext(policy),
 		policyMapper:   policyMapper,
 		resourceMapper: noResourceMapper,
@@ -68,6 +69,27 @@ func (m *Middleware) WithPolicyPathMapper(mapper StringMapper) *Middleware {
 	return m
 }
 
+/*
+WithResourceFromFields instructs the middleware to select the specified fields from incoming messages and
+use them as the resource in authorization calls. Fields are expressed as a field mask.
+
+Note: Protobuf message fields are identified using their JSON names.
+
+Example:
+
+  middleware.WithResourceFromFields("product.type", "address")
+
+This call would result in an authorization resource with the following structure:
+
+  {
+	  "product": {
+		  "type": <value from message>
+	  },
+	  "address": <value from message>
+  }
+
+If the value of "address" is itself a message, all of its fields are included.
+*/
 func (m *Middleware) WithResourceFromFields(fields ...string) *Middleware {
 	m.resourceMapper = messageResourceMapper(fields...)
 	return m
@@ -128,7 +150,7 @@ func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("authorization call failed: %w", err)
+		return errors.Wrap(err, "authorization call failed")
 	}
 
 	if len(resp.Decisions) == 0 {

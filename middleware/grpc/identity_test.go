@@ -16,16 +16,22 @@ type IdentityBuilder = grpc.IdentityBuilder
 
 const username = "george"
 
-var (
-	Anon = api.IdentityContext{Type: api.IdentityType_IDENTITY_TYPE_NONE}
-	JWT  = api.IdentityContext{Type: api.IdentityType_IDENTITY_TYPE_JWT, Identity: username}
-	SUB  = api.IdentityContext{Type: api.IdentityType_IDENTITY_TYPE_SUB, Identity: username}
-)
+func Anon() *api.IdentityContext {
+	return &api.IdentityContext{Type: api.IdentityType_IDENTITY_TYPE_NONE}
+}
+
+func JWT() *api.IdentityContext {
+	return &api.IdentityContext{Type: api.IdentityType_IDENTITY_TYPE_JWT, Identity: username}
+}
+
+func SUB() *api.IdentityContext {
+	return &api.IdentityContext{Type: api.IdentityType_IDENTITY_TYPE_SUB, Identity: username}
+}
 
 func TestTypeAssignment(t *testing.T) {
 	assert.Equal(
 		t,
-		&JWT,
+		JWT(),
 		(&IdentityBuilder{}).JWT().ID(username).Build(context.TODO(), nil),
 		"Expected JWT identity type",
 	)
@@ -36,7 +42,7 @@ func TestAssignmentOverride(t *testing.T) {
 
 	assert.Equal(
 		t,
-		&Anon,
+		Anon(),
 		(&IdentityBuilder{}).JWT().None().Build(context.TODO(), nil),
 		builder.Identity.Context().Type,
 		"Expected NONE identity to override JWT",
@@ -55,7 +61,7 @@ func TestAssignmentOrder(t *testing.T) {
 func TestNoneClearsIdentity(t *testing.T) {
 	assert.Equal(
 		t,
-		&Anon,
+		Anon(),
 		(&IdentityBuilder{}).ID("id").None().Build(context.TODO(), nil),
 		"WithNone should override previously assigned identity",
 	)
@@ -70,7 +76,7 @@ func TestIdentityFromMetadata(t *testing.T) {
 
 	assert.Equal(
 		t,
-		&JWT,
+		JWT(),
 		builder.Build(ctx, nil),
 		"Identity should be read from context metadata",
 	)
@@ -85,7 +91,7 @@ func TestIdentityFromMissingMetadata(t *testing.T) {
 
 	assert.Equal(
 		t,
-		&Anon,
+		Anon(),
 		builder.Build(ctx, nil),
 		"Missing metadata value results in anonymous identity",
 	)
@@ -97,7 +103,7 @@ func TestIdentityFromMissingMetadataValue(t *testing.T) {
 
 	assert.Equal(
 		t,
-		&Anon,
+		Anon(),
 		builder.Build(context.TODO(), nil),
 		"Missing metadata results in anonymous identity",
 	)
@@ -113,7 +119,7 @@ func TestIdentityFromContextValue(t *testing.T) {
 
 	assert.Equal(
 		t,
-		&SUB,
+		SUB(),
 		builder.Build(ctx, nil),
 		"Identity should be read from context value",
 	)
@@ -125,7 +131,7 @@ func TestMissingContextValue(t *testing.T) {
 
 	assert.Equal(
 		t,
-		&Anon,
+		Anon(),
 		builder.Build(context.TODO(), nil),
 		"Missing context value should result in anonymous identity",
 	)
