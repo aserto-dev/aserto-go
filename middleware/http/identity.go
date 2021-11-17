@@ -10,12 +10,11 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 )
 
-// IdentityMapper functions are used to specify the identity of an HTTP request caller.
-// The middleware.Identity parameter is used to set the properties of the identity used in authorization
-// requests.
+// IdentityMapper is the type of callback functions that can inspect incoming HTTP requests
+// and set the caller's identity.
 type IdentityMapper func(*http.Request, middleware.Identity)
 
-// IdentityBuilder is used to specify caller identity information to be used in authorization requests.
+// IdentityBuilder is used to configure what information about caller identity is sent in authorization calls.
 type IdentityBuilder struct {
 	Identity internal.Identity
 	mapper   IdentityMapper
@@ -115,9 +114,7 @@ func (b *IdentityBuilder) FromHostname(segment int) *IdentityBuilder {
 	return b
 }
 
-// Mapper allows callers to use their own custom function to extract identity from incoming requests.
-//
-// The specified IdentityMapper is called on each incoming request to set the caller's identity.
+// Mapper takes a custom IdentityMapper to be used for extracting identity information from incomign requests.
 func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 	b.mapper = mapper
 	return b

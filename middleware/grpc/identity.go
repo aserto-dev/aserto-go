@@ -9,8 +9,10 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// IdentityMapper is the type of callback functions that can inspect incoming RPCs and set the caller's identity.
 type IdentityMapper func(context.Context, interface{}, middleware.Identity)
 
+// IdentityBuilder is used to configure what information about caller identity is sent in authorization calls.
 type IdentityBuilder struct {
 	Identity internal.Identity
 	mapper   IdentityMapper
@@ -54,7 +56,7 @@ func (b *IdentityBuilder) ID(identity string) *IdentityBuilder {
 	return b
 }
 
-// FromMetadata extracts caller identity from a metadata field in the incoming message.
+// FromMetadata extracts caller identity from a grpc/metadata field in the incoming message.
 func (b *IdentityBuilder) FromMetadata(field string) *IdentityBuilder {
 	b.mapper = func(ctx context.Context, _ interface{}, identity middleware.Identity) {
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
@@ -77,12 +79,13 @@ func (b *IdentityBuilder) FromContextValue(key interface{}) *IdentityBuilder {
 	return b
 }
 
+// Mapper takes a custom IdentityMapper to be used for extracting identity information from incomign RPCs.
 func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 	b.mapper = mapper
 	return b
 }
 
-func (b *IdentityBuilder) Build(ctx context.Context, req interface{}) *api.IdentityContext {
+func (b *IdentityBuilder) build(ctx context.Context, req interface{}) *api.IdentityContext {
 	if b.mapper != nil {
 		b.mapper(ctx, req, &b.Identity)
 	}

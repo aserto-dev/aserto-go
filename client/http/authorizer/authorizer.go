@@ -32,7 +32,7 @@ type authorizer struct {
 	options    *client.ConnectionOptions
 }
 
-// NewAuthorizerClient return a new REST authorizer with the specified options.
+// New returns a new REST authorizer with the specified options.
 func New(opts ...client.ConnectionOption) (AuthorizerClient, error) {
 	options := client.NewConnectionOptions(opts...)
 

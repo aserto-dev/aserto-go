@@ -160,7 +160,7 @@ func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 	resp, err := m.client.Is(
 		ctx,
 		&authz.IsRequest{
-			IdentityContext: m.Identity.Build(ctx, req),
+			IdentityContext: m.Identity.build(ctx, req),
 			PolicyContext:   &m.policy,
 			ResourceContext: m.resourceMapper(ctx, req),
 		},
