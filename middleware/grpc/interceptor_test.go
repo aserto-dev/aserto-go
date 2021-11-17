@@ -100,7 +100,7 @@ func testCase(testCase *TestCase, runner testRunner) func(*testing.T) {
 	return func(t *testing.T) {
 		err := runner(testCase.middleware)
 		if testCase.expectedErr == nil {
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 		} else {
 			assert.ErrorIs(t, err, testCase.expectedErr)
 		}

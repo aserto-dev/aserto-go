@@ -150,9 +150,8 @@ func TestWithCACertPath(t *testing.T) {
 	caPath := fmt.Sprintf("%s/ca.pem", tempdir)
 
 	file, err := os.OpenFile(caPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
-	if err != nil {
-		t.Fatalf("Failed to create CA file: %s", err)
-	}
+	assert.NoError(t, err, "Failed to create CA file")
+
 	defer file.Close()
 
 	caCert, err := generateCACert(CertSubjectName)

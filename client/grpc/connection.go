@@ -25,6 +25,8 @@ func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Conne
 	return newConnection(ctx, dialContext, opts...)
 }
 
+// dialer is introduced in order to test the logic responsible for configuring the underlying gRPC connection
+// without really attempting a connection.
 type dialer func(
 	ctx context.Context,
 	address string,
@@ -33,6 +35,7 @@ type dialer func(
 	connection *Connection,
 ) (*grpc.ClientConn, error)
 
+// dialContext is the default dialer that calls grpc.DialContext to establish a connection.
 func dialContext(
 	ctx context.Context,
 	address string,

@@ -1,3 +1,8 @@
+/*
+This package provides authorization middleware for gRPC servers.
+The middleware intercepts incoming requests and streams and calls the Aserto authorizer service to
+determine if access should be granted.
+*/
 package grpc
 
 import (
@@ -20,18 +25,25 @@ type (
 	AuthorizerClient = authz.AuthorizerClient
 )
 
-// Middleware implements gRPC unary and stream server interceptors that perform authorization.
-// It provides configuration options to control how authorization parameters like caller identity, and
-// policy path are extracted from incoming RPC calls.
+/*
+Middleware implements unary and stream server interceptors that can be attached to gRPC servers.
+
+To authorize incoming RPC calls, the middleware needs information about:
+
+1. The user making the request.
+
+2. The Aserto authorization policy to evaluate.
+
+3. Optional, additional input data to the authorization policy.
+
+The values for these parameters can be set globally or extracted dynamically from incoming messages.
+*/
 type Middleware struct {
+	// Identity determines the caller identity used in authorization calls.
 	Identity *IdentityBuilder
 
-	client AuthorizerClient
-	// builder internal.IsRequestBuilder
-	// request authz.IsRequest
-
-	policy api.PolicyContext
-
+	client         AuthorizerClient
+	policy         api.PolicyContext
 	policyMapper   StringMapper
 	resourceMapper StructMapper
 }
@@ -46,7 +58,11 @@ type (
 	StructMapper func(context.Context, interface{}) *structpb.Struct
 )
 
-// NewServerInterceptor returns a new ServerInterceptor from the specified authorizer client and configuration.
+// New creates middleware for the specified policy.
+//
+// The new middleware is created with default identity and policy path mapper.
+// Those can be overridden using `Middleware.Identity` to specify the caller's identity, or using
+// the middleware's ".With...()" functions to set policy path and resource mappers.
 func New(client AuthorizerClient, policy Policy) *Middleware {
 	policyMapper := methodPolicyMapper("")
 	if policy.Path != "" {

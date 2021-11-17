@@ -1,3 +1,8 @@
+/*
+This package provides authorization middleware for HTTP servers built on top of net/http.
+The middleware intercepts incoming requests and calls the Aserto authorizer service to determine if access should
+be granted.
+*/
 package http
 
 import (
@@ -19,7 +24,7 @@ type (
 )
 
 /*
-Middleware integrates Aserto authorization into HTTP servers.
+Middleware implements an http.Handler that can be added to routes in net/http servers.
 
 To authorize incoming requests, the middleware needs information about:
 
@@ -30,38 +35,20 @@ To authorize incoming requests, the middleware needs information about:
 3. Optional, additional input data to the authorization policy.
 
 The values for these parameters can be set globally or extracted dynamically from incoming messages.
-
-// TODO: update...
-When handling an incoming request, the middleware uses mapper functions to
-retrieve authorization parameters from the request.
-Middleware provides mappers for commonly used scenarios and users can attach
-their own mappers to perform custom logic.
-
-Identity: The identity mapper examines the message and returns a string represeting the caller's
-  identity, such as a JWT, a user-name, email, etc. An empty string implied an unauthenticated caller.
-  The default identity mapper reads the value of the "Authorization" HTTP header, if present.
-
-Policy: The policy mapper examines the message and returns a string representing the path of the
-  authorization rules to query within the policy (e.g. "peoplefinder.POST.api.users.__id").
-  The default policy mapper combines the configured policy root, http method, and URL path.
-
-Resource: The optional resource mapper examines the message and returns additional data to include in the
-  authorization request in the form of a structpb.Struct representing a JSON object.
 */
 type Middleware struct {
+	// Identity determines the caller identity used in authorization calls.
 	Identity *IdentityBuilder
 
-	client AuthorizerClient
-
-	policy api.PolicyContext
-
+	client         AuthorizerClient
+	policy         api.PolicyContext
 	policyMapper   StringMapper
 	resourceMapper StructMapper
 }
 
 type (
 	// StringMapper functions are used to extract string values from incoming messages.
-	// They are used to define identity and policy mappers.
+	// They are used to define policy mappers.
 	StringMapper func(*http.Request) string
 
 	// StructMapper functions are used to extract structured data from incoming message.
@@ -69,7 +56,11 @@ type (
 	StructMapper func(*http.Request) *structpb.Struct
 )
 
-// NewAuthorizer creates a new Authorizer with default mappers.
+// New creates middleware for the specified policy.
+//
+// The new middleware is created with default identity and policy path mapper.
+// Those can be overridden using `Middleware.Identity` to specify the caller's identity, or using
+// the middleware's ".With...()" functions to set policy path and resource mappers.
 func New(client AuthorizerClient, policy Policy) *Middleware {
 	policyMapper := urlPolicyPathMapper("")
 	if policy.Path != "" {
@@ -112,6 +103,19 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 	})
 }
 
+// WithPolicyFromURL instructs the middleware to construct the policy path from the path segment
+// of the incoming request's URL.
+//
+// Path separators ('/') are replaced with dots ('.'). If the request uses gorilla/mux to define path
+// parameters, those are added to the path with two leading underscores.
+// An optional prefix can be specified to be included in all paths.
+//
+// Example
+//
+// Using 'WithPolicyFromURL("myapp")', the route
+//   POST /products/{id}
+// becomes the policy path
+//  "myapp.POST.products.__id"
 func (m *Middleware) WithPolicyFromURL(prefix string) *Middleware {
 	m.policyMapper = urlPolicyPathMapper(prefix)
 	return m
