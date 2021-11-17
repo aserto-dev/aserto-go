@@ -8,7 +8,7 @@ import (
 // WithInsecure disables TLS verification.
 func WithInsecure() ConnectionOption {
 	return func(options *ConnectionOptions) {
-		options.Insecure = false
+		options.Insecure = true
 	}
 }
 
@@ -72,15 +72,9 @@ type ConnectionOptions struct {
 // ConnecionOption functions are used to configure ConnectionOptions instances.
 type ConnectionOption func(*ConnectionOptions)
 
-const (
-	defaultInsecure = false
-)
-
 // NewConnectionOptions creates a ConnectionOptions object from a collection of ConnectionOption functions.
 func NewConnectionOptions(opts ...ConnectionOption) *ConnectionOptions {
-	options := &ConnectionOptions{
-		Insecure: defaultInsecure,
-	}
+	options := &ConnectionOptions{}
 
 	for _, opt := range opts {
 		opt(options)

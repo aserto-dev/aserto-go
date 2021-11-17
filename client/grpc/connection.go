@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"crypto/tls"
 	"io/ioutil"
 	"time"
 
@@ -21,6 +22,36 @@ type Connection struct {
 const defaultTimeout time.Duration = time.Duration(5) * time.Second
 
 func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Connection, error) {
+	return newConnection(ctx, dialContext, opts...)
+}
+
+type dialer func(
+	ctx context.Context,
+	address string,
+	tlsConf *tls.Config,
+	callerCreds credentials.PerRPCCredentials,
+	connection *Connection,
+) (*grpc.ClientConn, error)
+
+func dialContext(
+	ctx context.Context,
+	address string,
+	tlsConf *tls.Config,
+	callerCreds credentials.PerRPCCredentials,
+	connection *Connection,
+) (*grpc.ClientConn, error) {
+	return grpc.DialContext(
+		ctx,
+		address,
+		grpc.WithTransportCredentials(credentials.NewTLS(tlsConf)),
+		grpc.WithPerRPCCredentials(callerCreds),
+		grpc.WithBlock(),
+		grpc.WithUnaryInterceptor(connection.unary),
+		grpc.WithStreamInterceptor(connection.stream),
+	)
+}
+
+func newConnection(ctx context.Context, dialContext dialer, opts ...client.ConnectionOption) (*Connection, error) {
 	options := client.NewConnectionOptions(opts...)
 
 	tlsConf, err := internal.TLSConfig(options.Insecure)
@@ -39,8 +70,6 @@ func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Conne
 		}
 	}
 
-	clientCreds := credentials.NewTLS(tlsConf)
-
 	connection := &Connection{TenantID: options.TenantID}
 
 	if _, ok := ctx.Deadline(); !ok {
@@ -51,14 +80,12 @@ func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Conne
 		defer cancel()
 	}
 
-	conn, err := grpc.DialContext(
+	conn, err := dialContext(
 		ctx,
 		serverAddress(options.Address),
-		grpc.WithTransportCredentials(clientCreds),
-		grpc.WithPerRPCCredentials(options.Creds),
-		grpc.WithBlock(),
-		grpc.WithUnaryInterceptor(connection.unary),
-		grpc.WithStreamInterceptor(connection.stream),
+		tlsConf,
+		options.Creds,
+		connection,
 	)
 	if err != nil {
 		return nil, err
