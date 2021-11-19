@@ -6,23 +6,47 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
+	"github.com/aserto-dev/aserto-go/client"
+	"github.com/aserto-dev/aserto-go/client/grpc/authorizer"
+	asertomw "github.com/aserto-dev/aserto-go/middleware/http"
 	"github.com/gorilla/mux"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
-const port = ":8000"
+const (
+	port = ":8080"
+)
 
 func main() {
 	s := newServer()
 	r := mux.NewRouter()
 
-	r.Use(basicAuth, jsonContentType)
+	ctx := context.Background()
+	authzClient, err := authorizer.New(
+		ctx,
+		client.WithAddr("localhost:8282"),
+		client.WithTenantID("0fb5d7eb-8190-4f9d-ac7f-db0ba8374cb7"),
+		client.WithInsecure(),
+	)
+	if err != nil {
+		log.Fatalf("Unable to create authorizer client: %v", err)
+	}
+	mw := asertomw.New(
+		authzClient,
+		asertomw.Policy{ID: "messageboards", Decision: "allowed"},
+	).WithPolicyFromURL("messageboards").WithResourceMapper(resourceContext)
+	mw.Identity.Subject().FromContextValue("user")
+
+	r.Use(basicAuth, jsonContentType, s.boardLoader, mw.Handler)
 
 	r.HandleFunc("/boards", s.CreateBoard).Methods(http.MethodPost)
 	r.HandleFunc("/boards", s.ListBoards).Methods(http.MethodGet)
-	r.HandleFunc("/boards/{id}", s.PostMessage).Methods(http.MethodPost)
+	r.HandleFunc("/boards/{boardID}", s.PostMessage).Methods(http.MethodPost)
+	r.HandleFunc("/boards/{boardID}/messages", s.ListMessages).Methods(http.MethodGet)
 	r.HandleFunc("/boards/{boardID}/messages/{messageID}", s.DeleteMessage).Methods(http.MethodDelete)
 
 	// Start server
@@ -60,6 +84,43 @@ type BoardMessage struct {
 	Msg          string    `json:"message"`
 }
 
+func resourceContext(r *http.Request) *structpb.Struct {
+	board := getBoard(r.Context())
+	if board == nil {
+		return nil
+	}
+
+	resource := map[string]interface{}{
+		"board": structToMap(board),
+	}
+
+	if messageID, err := messageIDFromString(mux.Vars(r)["messageID"]); err != nil {
+		if message, ok := board.Messages[messageID]; ok {
+			resource["message"] = structToMap(message)
+		}
+	}
+
+	resourceStruct, err := structpb.NewStruct(resource)
+	if err != nil {
+		return nil
+	}
+
+	return resourceStruct
+}
+
+func structToMap(data interface{}) map[string]interface{} {
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return nil
+	}
+	mapData := make(map[string]interface{})
+	err = json.Unmarshal(dataBytes, &mapData)
+	if err != nil {
+		return nil
+	}
+	return mapData
+}
+
 func (s *server) CreateBoard(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	if name == "" {
@@ -92,7 +153,9 @@ func (s *server) ListBoards(w http.ResponseWriter, r *http.Request) {
 		boards = append(boards, b)
 	}
 
-	json.NewEncoder(w).Encode(boards)
+	if err := json.NewEncoder(w).Encode(boards); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (s *server) newID() uint64 {
@@ -107,15 +170,9 @@ func (s *server) PostMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	boardID, err := boardIDFromString(mux.Vars(r)["id"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	board, ok := s.boards[BoardID(boardID)]
-	if !ok {
-		http.Error(w, fmt.Sprintf("board with id '%d' doesn't exist", boardID), http.StatusBadRequest)
+	board := getBoard(r.Context())
+	if board == nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 
@@ -129,6 +186,25 @@ func (s *server) PostMessage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(msg)
 }
 
+func (s *server) ListMessages(w http.ResponseWriter, r *http.Request) {
+	board := getBoard(r.Context())
+	if board == nil {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	messages := make([]BoardMessage, 0, len(board.Messages))
+	for _, message := range board.Messages {
+		messages = append(messages, message)
+	}
+
+	sort.Slice(messages, func(i, j int) bool {
+		return messages[i].CreationTime.After(messages[j].CreationTime)
+	})
+
+	json.NewEncoder(w).Encode(messages)
+}
+
 func (s *server) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	boardID, err := boardIDFromString(vars["boardID"])
@@ -137,7 +213,7 @@ func (s *server) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messageID, err := messageIDFromString(vars["MessageID"])
+	messageID, err := messageIDFromString(vars["messageID"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -152,16 +228,59 @@ func (s *server) DeleteMessage(w http.ResponseWriter, r *http.Request) {
 	delete(board.Messages, messageID)
 }
 
+type boardkey struct{}
+
+func (s *server) boardLoader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		if boardID, ok := vars["boardID"]; ok {
+			board, err := s.findBoard(boardID)
+			if err == nil {
+				r = r.WithContext(
+					context.WithValue(r.Context(), boardkey{}, board),
+				)
+			}
+
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func getBoard(ctx context.Context) *MessageBoard {
+	val := ctx.Value(boardkey{})
+	if val != nil {
+		return val.(*MessageBoard)
+	}
+
+	return nil
+}
+
+func (s *server) findBoard(id string) (*MessageBoard, error) {
+	boardID, err := boardIDFromString(id)
+	if err != nil {
+		return nil, err
+	}
+
+	board, ok := s.boards[BoardID(boardID)]
+	if !ok {
+		return nil, nil
+	}
+
+	return &board, nil
+}
+
 func basicAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, password, ok := r.BasicAuth()
-		if !ok || !checkPassword(user, password) {
-			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-			return
+		if ok {
+			if !checkPassword(user, password) {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+				return
+			}
+			r = r.WithContext(context.WithValue(r.Context(), "user", user))
 		}
-
-		r = r.WithContext(context.WithValue(r.Context(), "user", user))
 
 		next.ServeHTTP(w, r)
 	})
