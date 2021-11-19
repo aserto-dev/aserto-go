@@ -58,7 +58,7 @@ func TestWithAddr(t *testing.T) {
 
 func TestWithInsecure(t *testing.T) {
 	recorder := &dialRecorder{}
-	newConnection(context.TODO(), recorder.DialContext, client.WithInsecure()) // nolint:errcheck
+	newConnection(context.TODO(), recorder.DialContext, client.WithInsecure(true)) // nolint:errcheck
 
 	assert.True(t, recorder.tlsConf.InsecureSkipVerify)
 }

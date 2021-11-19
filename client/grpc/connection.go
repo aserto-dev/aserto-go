@@ -15,6 +15,9 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// Connection represents a gRPC connection with an Aserto tenenat ID.
+//
+// The tenant ID is automatically sent to the backend on each request using a ClientInterceptor.
 type Connection struct {
 	Conn     *grpc.ClientConn
 	TenantID string
@@ -22,6 +25,40 @@ type Connection struct {
 
 const defaultTimeout time.Duration = time.Duration(5) * time.Second
 
+/*
+NewConnection establishes a gRPC connection.
+
+Options
+
+Options can be specified to configure the connection or override default behavior:
+
+1. WithAddr() - sets the server address and port. Default: "authorizer.prod.aserto.com:8443".
+
+2. WithAPIKeyAuth() - sets an API key for authentication.
+
+3. WithTokenAuth() - sets an OAuth2 token to be used for authentication.
+
+4. WithTenantID() - sets the aserto tenant ID.
+
+5. WithInsecure() - enables/disables TLS verification. Default: false.
+
+6. WithCACertPath() - adds the specified PEM certificate file to the connection's list of trusted root CAs.
+
+
+Timeout
+
+Connection timeout can be set on the specified context using context.WithTimeout. If no timeout is set on the
+context, the default connection timeout is 5 seconds. For example, to increase the timeout to 10 seconds:
+
+	ctx := context.Background()
+
+	client, err := authorizer.New(
+		context.WithTimeout(ctx, time.Duration(10) * time.Second),
+		aserto.WithAPIKeyAuth("<API Key>"),
+		aserto.WithTenantID("<Tenant ID>"),
+	)
+
+*/
 func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Connection, error) {
 	return newConnection(ctx, dialContext, opts...)
 }
@@ -53,6 +90,7 @@ func dialContext(
 	if callerCreds != nil {
 		dialOptions = append(dialOptions, grpc.WithPerRPCCredentials(callerCreds))
 	}
+
 	return grpc.DialContext(
 		ctx,
 		address,
@@ -96,7 +134,9 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...client.Conne
 		options.Creds,
 		connection,
 	)
+
 	fmt.Println("Dial complete:", err)
+
 	if err != nil {
 		return nil, err
 	}

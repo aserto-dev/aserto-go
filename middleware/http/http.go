@@ -149,7 +149,7 @@ func urlPolicyPathMapper(prefix string) StringMapper {
 		}
 
 		policyRoot := prefix
-		if !strings.HasSuffix(policyRoot, ".") {
+		if policyRoot != "" && !strings.HasSuffix(policyRoot, ".") {
 			policyRoot += "."
 		}
 

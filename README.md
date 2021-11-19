@@ -38,6 +38,40 @@ client, err := authorizer.New(
 )
 ```
 
+#### Connection Options
+
+The options below can be specified to override default behaviors:
+
+**`WithAddr()`** - sets the server address and port. Default: "authorizer.prod.aserto.com:8443".
+
+**`WithAPIKeyAuth()`** - sets an API key for authentication.
+
+**`WithTokenAuth()`** - sets an OAuth2 token to be used for authentication.
+
+**`WithTenantID()`** - sets the aserto tenant ID.
+
+**`WithInsecure()`** - enables/disables TLS verification. Default: false.
+
+**`WithCACertPath()`** - adds the specified PEM certificate file to the connection's list of trusted root CAs.
+
+
+#### Connection Timeout
+
+
+Connection timeout can be set on the specified context using context.WithTimeout. If no timeout is set on the
+context, the default connection timeout is 5 seconds. For example, to increase the timeout to 10 seconds:
+
+```go
+ctx := context.Background()
+
+client, err := authorizer.New(
+	context.WithTimeout(ctx, time.Duration(10) * time.Second),
+	aserto.WithAPIKeyAuth("<API Key>"),
+	aserto.WithTenantID("<Tenant ID>"),
+)
+```
+
+
 ### Make Authorization Calls
 
 Use the client's `Is()` method to request authorization decisions from the Aserto authorizer service.

@@ -6,9 +6,9 @@ import (
 )
 
 // WithInsecure disables TLS verification.
-func WithInsecure() ConnectionOption {
+func WithInsecure(insecure bool) ConnectionOption {
 	return func(options *ConnectionOptions) {
-		options.Insecure = true
+		options.Insecure = insecure
 	}
 }
 
