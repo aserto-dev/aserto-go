@@ -83,13 +83,14 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 			m.policy.Path = m.policyMapper(r)
 		}
 
+		isRequest := authorizer.IsRequest{
+			IdentityContext: m.Identity.build(r),
+			PolicyContext:   &m.policy,
+			ResourceContext: m.resourceMapper(r),
+		}
 		resp, err := m.client.Is(
 			r.Context(),
-			&authorizer.IsRequest{
-				IdentityContext: m.Identity.build(r),
-				PolicyContext:   &m.policy,
-				ResourceContext: m.resourceMapper(r),
-			},
+			&isRequest,
 		)
 		if err == nil && len(resp.Decisions) == 1 {
 			if resp.Decisions[0].Is {
@@ -147,11 +148,12 @@ func urlPolicyPathMapper(prefix string) StringMapper {
 			return gorillaPathMapper(prefix, r)
 		}
 
-		if prefix != "" {
-			prefix += "."
+		policyRoot := prefix
+		if !strings.HasSuffix(policyRoot, ".") {
+			policyRoot += "."
 		}
 
-		return fmt.Sprintf("%s%s.%s", prefix, r.Method, internal.ToPolicyPath(r.URL.Path))
+		return fmt.Sprintf("%s%s.%s", policyRoot, r.Method, internal.ToPolicyPath(r.URL.Path))
 	}
 }
 

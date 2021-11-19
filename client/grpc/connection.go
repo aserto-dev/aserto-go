@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -43,14 +44,19 @@ func dialContext(
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
 ) (*grpc.ClientConn, error) {
-	return grpc.DialContext(
-		ctx,
-		address,
+	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(credentials.NewTLS(tlsConf)),
-		grpc.WithPerRPCCredentials(callerCreds),
 		grpc.WithBlock(),
 		grpc.WithUnaryInterceptor(connection.unary),
 		grpc.WithStreamInterceptor(connection.stream),
+	}
+	if callerCreds != nil {
+		dialOptions = append(dialOptions, grpc.WithPerRPCCredentials(callerCreds))
+	}
+	return grpc.DialContext(
+		ctx,
+		address,
+		dialOptions...,
 	)
 }
 
@@ -90,6 +96,7 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...client.Conne
 		options.Creds,
 		connection,
 	)
+	fmt.Println("Dial complete:", err)
 	if err != nil {
 		return nil, err
 	}
