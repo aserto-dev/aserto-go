@@ -52,7 +52,7 @@ func (s *MsgBoardsSvc) CreateBoard(w http.ResponseWriter, r *http.Request) {
 
 	user := s.identity.User(r)
 	if user == "" {
-		http.Error(w, "missing user identity", http.StatusInternalServerError)
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 

@@ -1,4 +1,4 @@
-package messageboards.POST.boards.__boardID
+package messageboards.POST.boards.__boardID.messages
 
 default allowed = false
 

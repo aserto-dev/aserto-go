@@ -12,9 +12,10 @@ const (
 	port = ":8080"
 )
 
-func main() {
+func createRouter() *mux.Router {
 	identity := &BasicAuth{}
-	mw, err := NewAuthorizaionMiddleware(identity)
+
+	authz, err := NewAuthorizaionMiddleware(identity)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,13 +23,25 @@ func main() {
 	svc := newMsgBoardsSvc(identity)
 	r := mux.NewRouter()
 
-	r.Use(identity.Middleware, jsonContentType, svc.boardLoader, mw.Handler)
+	// Add middleware
+	r.Use(
+		identity.Middleware,
+		jsonContentType,
+		svc.boardLoader,
+		authz.Handler,
+	)
 
 	r.HandleFunc("/boards", svc.CreateBoard).Methods(http.MethodPost)
 	r.HandleFunc("/boards", svc.ListBoards).Methods(http.MethodGet)
-	r.HandleFunc("/boards/{boardID}", svc.PostMessage).Methods(http.MethodPost)
+	r.HandleFunc("/boards/{boardID}/messages", svc.PostMessage).Methods(http.MethodPost)
 	r.HandleFunc("/boards/{boardID}/messages", svc.ListMessages).Methods(http.MethodGet)
 	r.HandleFunc("/boards/{boardID}/messages/{messageID}", svc.DeleteMessage).Methods(http.MethodDelete)
+
+	return r
+}
+
+func main() {
+	r := createRouter()
 
 	// Start server
 	fmt.Printf("Starting server on 'localhost%s'\n", port)
