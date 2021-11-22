@@ -122,7 +122,10 @@ func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 
 func (b *IdentityBuilder) build(r *http.Request) *api.IdentityContext {
 	if b.mapper != nil {
-		b.mapper(r, &b.Identity)
+		identity := b.Identity.Clone()
+		b.mapper(r, identity)
+
+		return identity.Context()
 	}
 
 	return b.Identity.Context()

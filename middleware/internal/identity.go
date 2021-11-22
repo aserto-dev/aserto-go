@@ -49,3 +49,7 @@ func (id *Identity) Context() *api.IdentityContext {
 
 	return &id.context
 }
+
+func (id *Identity) Clone() *Identity {
+	return &Identity{context: api.IdentityContext{Type: id.context.Type, Identity: id.context.Identity}}
+}

@@ -87,7 +87,10 @@ func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 
 func (b *IdentityBuilder) build(ctx context.Context, req interface{}) *api.IdentityContext {
 	if b.mapper != nil {
-		b.mapper(ctx, req, &b.Identity)
+		identity := b.Identity.Clone()
+		b.mapper(ctx, req, identity)
+
+		return identity.Context()
 	}
 
 	return b.Identity.Context()
