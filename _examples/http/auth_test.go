@@ -134,6 +134,37 @@ func TestAuthorization(t *testing.T) {
 			AssertMessageCount(0),
 		),
 	)
+
+	t.Run(
+		"Kim should be able to post a message",
+		r.Test(
+			Kim,
+			httptest.NewRequest(http.MethodPost, "/boards/1/messages", strings.NewReader(`{"message": "hello"}`)),
+			func(t *testing.T, status int, body []byte) {
+				assert.Equal(t, http.StatusOK, status)
+			},
+		),
+	)
+
+	t.Run(
+		"There should be one messages in the board",
+		r.Test(
+			Anonymous,
+			httptest.NewRequest(http.MethodGet, "/boards/1/messages", nil),
+			AssertMessageCount(1),
+		),
+	)
+
+	t.Run(
+		"Kim should be able to delete her own message",
+		r.Test(
+			Kim,
+			httptest.NewRequest(http.MethodDelete, "/boards/1/messages/3", nil),
+			func(t *testing.T, status int, _ []byte) {
+				assert.Equal(t, http.StatusOK, status)
+			},
+		),
+	)
 }
 
 func GetBoardsRequest() *http.Request {
