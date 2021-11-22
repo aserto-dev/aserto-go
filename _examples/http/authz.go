@@ -48,7 +48,7 @@ func resourceContext(r *http.Request) *structpb.Struct {
 		"board": structToMap(board),
 	}
 
-	if messageID, err := messageIDFromString(mux.Vars(r)["messageID"]); err != nil {
+	if messageID, err := messageIDFromString(mux.Vars(r)["messageID"]); err == nil {
 		if message, ok := board.Messages[messageID]; ok {
 			resource["message"] = structToMap(message)
 		}

@@ -100,7 +100,7 @@ func (s *MsgBoardsSvc) PostMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	msg.ID = MessageID(s.newID())
-	msg.Sender = r.Context().Value("user").(string)
+	msg.Sender = r.Context().Value(s.identity).(string)
 	msg.BoardID = board.ID
 	msg.CreationTime = time.Now()
 
