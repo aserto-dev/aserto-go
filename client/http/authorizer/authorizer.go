@@ -3,11 +3,12 @@ package authorizer
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/pkg/errors"
 
 	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/client/internal"
@@ -17,6 +18,8 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
+
+type AuthorizerClient = authz.AuthorizerClient
 
 // Error codes for REST authorizer.
 var (
@@ -29,8 +32,8 @@ type authorizer struct {
 	options    *client.ConnectionOptions
 }
 
-// NewAuthorizerClient return a new REST authorizer with the specified options.
-func NewAuthorizerClient(opts ...client.ConnectionOption) (authz.AuthorizerClient, error) {
+// New returns a new REST authorizer with the specified options.
+func New(opts ...client.ConnectionOption) (AuthorizerClient, error) {
 	options := client.NewConnectionOptions(opts...)
 
 	tlsConf, err := internal.TLSConfig(options.Insecure)
@@ -156,10 +159,12 @@ func (a *authorizer) postRequest(ctx context.Context, url string, message proto.
 		defer resp.Body.Close()
 
 		return nil,
-			fmt.Errorf("http request failed. status: '%s'. body: '%s': %w",
-				resp.Status,
-				tryReadText(resp.Body),
+			errors.Wrap(
 				ErrHTTPFailure,
+				fmt.Sprintf("http request failed. status: '%s'. body: '%s'",
+					resp.Status,
+					tryReadText(resp.Body),
+				),
 			)
 	}
 

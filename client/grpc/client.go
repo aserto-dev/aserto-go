@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Client provides access to services only available usign gRPC.
+// Client provides access to Aserto administrative services.
 type Client struct {
 	conn *Connection
 

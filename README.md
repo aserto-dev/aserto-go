@@ -3,12 +3,13 @@
 The `aserto-go` module provides access to the Aserto authorization service.
 
 Communication with the authorizer service is performed using an AuthorizerClient.
-The client can be used on its own to make authorization calls or, more commonly, it can be used to create
+A client can be used on its own to make authorization calls or, more commonly, it can be used to create
 server middleware.
 
 ## AuthorizerClient
 
-The `AuthorizerClient` interface, defined in `"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"`,
+The `AuthorizerClient` interface, defined in
+[`"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"`](https://github.com/aserto-dev/go-grpc-authz/blob/main/aserto/authorizer/authorizer/v1/authorizer_grpc.pb.go#L20),
 describes the operations exposed by the Aserto authorizer service.
 
 Two implementation of `AuthorizerClient` are available:
@@ -36,6 +37,40 @@ client, err := authorizer.New(
 	aserto.WithTenantID("<Tenant ID>"),
 )
 ```
+
+#### Connection Options
+
+The options below can be specified to override default behaviors:
+
+**`WithAddr()`** - sets the server address and port. Default: "authorizer.prod.aserto.com:8443".
+
+**`WithAPIKeyAuth()`** - sets an API key for authentication.
+
+**`WithTokenAuth()`** - sets an OAuth2 token to be used for authentication.
+
+**`WithTenantID()`** - sets the aserto tenant ID.
+
+**`WithInsecure()`** - enables/disables TLS verification. Default: false.
+
+**`WithCACertPath()`** - adds the specified PEM certificate file to the connection's list of trusted root CAs.
+
+
+#### Connection Timeout
+
+
+Connection timeout can be set on the specified context using context.WithTimeout. If no timeout is set on the
+context, the default connection timeout is 5 seconds. For example, to increase the timeout to 10 seconds:
+
+```go
+ctx := context.Background()
+
+client, err := authorizer.New(
+	context.WithTimeout(ctx, time.Duration(10) * time.Second),
+	aserto.WithAPIKeyAuth("<API Key>"),
+	aserto.WithTenantID("<Tenant ID>"),
+)
+```
+
 
 ### Make Authorization Calls
 
@@ -67,26 +102,21 @@ When authorization middleware is configured and attached to a server, it examine
 authorization parameters like the caller's identity, calls the Aserto authorizers, and rejects messages if their
 access is denied.
 
-Both gRPC and HTTP middleware is created from an `AuthorizerClient` and configuration for values that are not independent
-on the content of incoming messages.
+Both gRPC and HTTP middleware are created from an `AuthorizerClient` and a `Policy` with parameters that can be shared
+by all authorization calls.
 
 ```go
-// Config holds global authorization options that apply to all requests.
-type Config struct {
-	// IdentityType describes how identities are interpreted.
-	IdentityType api.IdentityType
+// Policy holds global authorization options that apply to all requests.
+type Policy struct {
+	// ID is the ID of the aserto policy being queried for authorization.
+	ID string
 
-	// PolicyID is the ID of the aserto policy being queried for authorization.
-	PolicyID string
+	// Path is the package name of the rego policy to evaluate.
+	// If left empty, a policy mapper must be attached to the middleware to provide
+	// the policy path from incoming messages.
+	Path string
 
-	// PolicyRoot is an optional prefix added to policy paths inferred from messages.
-	//
-	// For example, if the policy 'peoplefinder.POST.api.users' defines rules for POST requests
-	// made to '/api/users', then setting "peoplefinder" as the policy root allows the middleware
-	// to infer the correct policy path from incoming requests.
-	PolicyRoot string
-
-	// Descision is the authorization rule to use.
+	// Decision is the authorization rule to use.
 	Decision string
 }
 ```
@@ -94,42 +124,96 @@ type Config struct {
 The value of several authorization parameters often depends on the content of incoming requests. Those are:
 
 * Identity - the identity (subject or JWT) of the caller.
-* Policy Path - the name of the authorization policy package to evaluate.
+* Policy Path - the name of the authorization policy package to evaluate. A default value can be set in `Policy.Path`
+  when creating the middleware, but the path is often dependent on the details of the request being authorized.
 * Resource Context - Additional data sent to the authorizer as JSON.
 
-To produce values for these parameters, each middleware provides hooks in the form of _mappers_. These are 
-functions that inspect an incoming message and return a value.
-Middleware accept an _identity mapper_, a _policy mapper_ - both return strings - and a _resource mapper_
-that returns a struct (`structpb.Struct`).
+### Identity
 
-Mappers are attached using the middleware's `With...()` methods. The most general of those are:
+Middlewares offer control over the identity used in authorization calls:
 
-* `WithIdentityMapper` - takes a `StringMapper` that inspects a message and returns a string to be used
-	as the caller's identity in the authorization request.
-* `WithPolicyMapper` - takes a `StringMapper` that inspects a message and returns a string to be used as
-    the Policy Path in the authorization request.
-* `WithResouceMapper` - takes a `StructMapper` that inspects a message and returns a `*structpb.Struct`
-     to be used as the Resource Context in the authorization request.
+```go
+// Use the subject name "george@acmecorp".
+middleware.Identity.Subject().ID("george@acmecorp.com")
+
+// Use a JWT from the Authorization header.
+middleware.Identity.JWT().FromHeader("Authorization")
+
+// Use subject name from the "identity" metadata key in the request `Context`.
+middleware.Identity.Subject().FromMetadata("identity")
+
+// Read identity from the context value "user". Middleware infers the identity type from the value.
+middleware.Identity.FromContext("user")
+```
+
+In addition, it is possible to provide custom logic to specify the callers identity. For example, in HTTP middleware:
+
+```go
+middleware.Identity.Mapper(func(r *http.Request, identity middleware.Identity) {
+	username := getUserFromRequest(r) // custom logic to get user identity
+
+	identity.Subject().ID(username) // set it on the middleware
+})
+```
+
+In all cases, if a value cannot be retrieved from the specified source (header, context, etc.), the authorization
+call checks for unauthenticated access.
+
+### Policy
+
+The authorization policy's ID and the decision to be evaluated are specified when creating authorization Middleware,
+but the policy path is often derived from the URL or method being called.
+
+By default, the policy path is derived from the URL path in HTTP middleware and the `grpc.Method` in gRPC middleware.
+
+To provide custom logic, use `middleware.WithPolicyPathMapper()`. For example, in gRPC middleware:
+
+```go
+middleware.WithPolicyPathMapper(func(ctx context.Context, req interface{}) string {
+	path := getPolicyPath(ctx, req) // custom logic to retrieve a JWT token
+	return path
+})
+```
+
+### Resource
+
+A resource can be any structured data that the authorization policy uses to evaluate decisions.
+By default, middleware do not include a resource in authorization calls.
+
+To add resource data, use `Middleware.WithResourceMapper()` to attach custom logic. For example, in HTTP middleware:
+
+```go
+middleware.WithResourceMapper(func(r *http.Request) *structpb.Struct {
+	return structFromBody(r.Body) // custom logic 
+})
+```
 
 In addition to these, each middleware has built-in mappers that can handle common use-cases.
 
 ### gRPC Middleware
 
-The gRPC middleware is available in the sub-package `middleware/grpcmw`.
+The gRPC middleware is available in the sub-package `middleware/grpc`.
 It implements unary and stream gRPC server interceptors in its `.Unary()` and `.Stream()` methods.
 
 ```go
-middleware, err := grpcmw.NewServerInterceptor(
+import (
+	"github.com/aserto-dev/aserto-go/middleware"
+	grpcmw "github.com/aserto-dev/aserto-go/middleware/grpc"
+	"google.golang.org/grpc"
+)
+...
+middleware, err := grpcmw.New(
 	client,
-	grpcmw.Config{
-		IdentityType: api.IdentityType_IDENTITY_TYPE_SUB,
+	middleware.Policy{
 		PolicyID: "<Policy ID>",
-		PolicyRoot: "peoplefinder",
 		Decision: "allowed",
 	},
 )
 
-server := grpc.NewServer(grpc.UnaryInterceptor(middleware.Unary))
+server := grpc.NewServer(
+	grpc.UnaryInterceptor(middleware.Unary),
+	grpc.StreamInterceptor(middleware.Stream),
+)
 ```
 
 #### Mappers
@@ -146,48 +230,34 @@ type (
 )
 ```
 
-In addition to the general `WithIdentityMapper`, `WithPolicyMapper`, and `WithResourceMapper`, the gRPC middleware
-provides a set of helper methods that can replace custom user-defined mappers in common use-cases:
-
-* **`WithIdentityFromMetadata(field string)`**: Attaches a mapper that retrieves the caller's identity from
-  a [`metadata.MD`](https://pkg.go.dev/google.golang.org/grpc/metadata#MD) field.
-
-* **`WithIdentityFromContextValue(value string)`**: Attaches a mapper that retrieves the caller's identity from
-  a [`Context.Value`](https://pkg.go.dev/context#Context).
-
-* **`WithPolicyPath(path string)`**: Uses the specified policy path in all authorization requests.
-
-* **`WithResourceFromFields(fields ...string)`**: Attaches a mapper that constructs a Resource Context from an
-  incoming message by selecting fields, similar to a field mask filter.
+In addition to the general `WithIdentityMapper`, `WithPolicyPathMapper`, and `WithResourceMapper`, the gRPC middleware
+provides `WithResourceFromFields(fields ...string)` which selects a set of fields from the incoming message to be
+sent as an authorization resource.
 
 #### Default Mappers
 
-The middleware returned by `NewServerInterceptor` is configured with the following mappers by default:
+The default behavior of the gRPC middleware is:
 
-* Identity is pulled form the `"authorization"` metadata field (i.e. `WithIdentityFromMetadata("authorization")`).
-* Policy path is constructed as `<policy root>.<grpc.Method>` where path delimiters (`/`) are replaced with dots (`.`).
+* Identity is pulled form the `"authorization"` metadata field (i.e. `middleware.Identity.FromMetadata("authorization")`).
+* Policy path is constructed from `grpc.Method()` with dots (`.`) replacing path delimiters (`/`).
 * No Resource Context is included in authorization calls by default.
-
-For example, to retrieve the caller's identity from the `"username"` context value, and set the same policy
-path (`"myPolicy"`) in all authorization requests:
-
-```go
-middlweare.WithIdentityFromContextValue("username").WithPolicyPath("myPolicy")
-```
 
 
 ### HTTP Middleware
 
-The HTTP middleware is available in the sub-package `middleware/httpmw`.
+The HTTP middleware is available in the sub-package `middleware/http`.
 It implements the standard `net/http` middleware signature (`func (http.Handler) http.Handler`) in its `.Handler` method.
 
 ```go
-authz, err := httpmw.NewMiddleware(
+import (
+	"github.com/aserto-dev/aserto-go/middleware"
+	httpmw "github.com/aserto-dev/aserto-go/middleware/http"
+)
+...
+mw := httpmw.New(
 	client,
-	grpcmw.Config{
-		IdentityType: api.IdentityType_IDENTITY_TYPE_SUB,
+	middleware.Policy{
 		PolicyID: "<Policy ID>",
-		PolicyRoot: "peoplefinder",
 		Decision: "allowed",
 	},
 )
@@ -222,20 +292,14 @@ type (
 ```
 
 In addition to the general `WithIdentityMapper`, `WithPolicyMapper`, and `WithResourceMapper`, the HTTP middleware
-provides a set of helper methods that can replace custom user-defined mappers in common use-cases:
-
-* **`WithIdentityFromHeader(header string)`**: Attaches a mapper that retrieves the caller's identity from the specified
-  HTTP header.
-
-* **`WithPolicyPath(path string)`**: Uses the specified policy path in all authorization requests.
+provides `WithIdentityFromHeader()` to extract identity information from HTTP headers.
 
 #### Default Mappers
 
-The middleware returned by `NewMiddleware` is configured with the following mappers by default:
+The default behavior of the HTTP middleware is:
 
-* Identity is retrieved from the "Authorization" HTTP Header, if present, and interpreted as an OAuth subject.
-* Policy path is retrieved from the request URL and method to form a path of the form
-  `PolicyRoot.METHOD.path.to.endpoint`.
+* Identity is retrieved from the "Authorization" HTTP Header, if present.
+* Policy path is retrieved from the request URL and method to form a path of the form `METHOD.path.to.endpoint`.
   If the server uses [`gorilla/mux`](https://github.com/gorilla/mux) and
   the route contains path parameters (e.g. `"api/products/{id}"`), the surrounding braces are replaced with a
   double-underscore prefix. For example, with policy root `"myApp"`, a request to `GET api/products/{id}` gets the
@@ -249,6 +313,7 @@ In addition to the authorizer service, aserto-go provides gRPC clients for Asert
 allowing users to programmatically manage their aserto account.
 
 An API client is created using `client.New()` which accepts the same connection options as `authorizer.New()`.
+The client is implemented in the `client/grpc` subpackage.
 
 ```go
 // Client provides access to services only available usign gRPC.

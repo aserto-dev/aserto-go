@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/aserto-dev/aserto-go/middleware/grpc/internal/pbutil"
 	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
@@ -31,28 +33,20 @@ func TestFieldMaskIsValid(t *testing.T) {
 		"resource_context",
 		"policy_context.id",
 	)
-	if err != nil {
-		t.Errorf("failed to create field mask: %w", err)
-	}
 
-	if !mask.IsValid(msg) {
-		t.Error("invalid mask")
-	}
+	assert.NoError(t, err, "failed to create field mask")
+	assert.True(t, mask.IsValid(msg), "invalid mask")
 
 	mask.Normalize()
 
 	testCase := func(paths []string, expected map[string]interface{}) func(t *testing.T) {
 		return func(t *testing.T) {
 			selection, err := pbutil.Select(msg, paths...)
-			if err != nil {
-				t.Errorf("select failed on policy_context.path: %w", err)
-			}
+			assert.NoError(t, err, "select failed on policy_context.path")
 
 			actual := selection.AsMap()
 
-			if !reflect.DeepEqual(expected, actual) {
-				t.Errorf("wrong selection '%v'", actual)
-			}
+			assert.True(t, reflect.DeepEqual(expected, actual), "wrong selection")
 		}
 	}
 

@@ -11,8 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
+type AuthorizerClient authz.AuthorizerClient
+
 // NewAuthorizerClient creates a new AuthorizerClient using the specified connection options.
-func New(ctx context.Context, opts ...client.ConnectionOption) (authz.AuthorizerClient, error) {
+func New(ctx context.Context, opts ...client.ConnectionOption) (AuthorizerClient, error) {
 	connection, err := grpc.NewConnection(ctx, opts...)
 	if err != nil {
 		return nil, errors.Wrap(err, "create grpc client failed")
