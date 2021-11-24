@@ -170,7 +170,7 @@ To provide custom logic, use `middleware.WithPolicyPathMapper()`. For example, i
 
 ```go
 middleware.WithPolicyPathMapper(func(ctx context.Context, req interface{}) string {
-	path := getPolicyPath(ctx, req) // custom logic to retrieve a JWT token
+	path := getPolicyPath(ctx, req) // custom logic to retireve the policy path.
 	return path
 })
 ```
@@ -254,7 +254,7 @@ import (
 	httpmw "github.com/aserto-dev/aserto-go/middleware/http"
 )
 ...
-mw := httpmw.New(
+middleware := httpmw.New(
 	client,
 	middleware.Policy{
 		PolicyID: "<Policy ID>",
@@ -266,7 +266,7 @@ mw := httpmw.New(
 Adding the created authorization middleware to a basic `net/http` server may look something like this:
 
 ```go
-http.Handle("/foo", authz.Handler(fooHandler))
+http.Handle("/foo", middleware.Handler(fooHandler))
 ```
 
 The popular [`gorilla/mux`](https://github.com/gorilla/mux) package provides a powerful and flexible HTTP router.
@@ -274,7 +274,7 @@ Attaching the authorization middleware to a `gorilla/mux` server is as simple as
 
 ```go
 router := mux.NewRouter()
-router.Use(mw)
+router.Use(middleware)
 
 router.HandleFunc("/foo", fooHandler).Methods("GET")
 ```
