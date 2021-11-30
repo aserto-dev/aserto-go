@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/aserto-dev/aserto-go/client"
@@ -100,8 +101,9 @@ func dialContext(
 
 func newConnection(ctx context.Context, dialContext dialer, opts ...client.ConnectionOption) (*Connection, error) {
 	options := client.NewConnectionOptions(opts...)
+	insecure := options.Insecure || strings.Contains(options.Address, "localhost")
 
-	tlsConf, err := internal.TLSConfig(options.Insecure)
+	tlsConf, err := internal.TLSConfig(insecure)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to setup tls configuration")
 	}
