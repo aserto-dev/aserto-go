@@ -10,10 +10,10 @@ import (
 
 // New returns a new gRPC AuthorizerClient with the specified options.
 func New(ctx context.Context, opts ...client.ConnectionOption) (authz.AuthorizerClient, error) {
-	client, err := authorizer.New(ctx, opts...)
+	c, err := authorizer.New(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	return client.Authorizer, nil
+	return c.Authorizer, nil
 }
