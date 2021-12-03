@@ -1,4 +1,4 @@
-package internal
+package tlsconf
 
 import (
 	"crypto/tls"

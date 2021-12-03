@@ -1,4 +1,4 @@
-package grpc
+package client
 
 import (
 	"context"
@@ -6,8 +6,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/client/internal"
+	"github.com/aserto-dev/aserto-go/internal/hosted"
+	"github.com/aserto-dev/aserto-go/internal/tlsconf"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -58,7 +59,7 @@ context, the default connection timeout is 5 seconds. For example, to increase t
 	)
 
 */
-func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Connection, error) {
+func NewConnection(ctx context.Context, opts ...ConnectionOption) (*Connection, error) {
 	return newConnection(ctx, dialContext, opts...)
 }
 
@@ -97,10 +98,10 @@ func dialContext(
 	)
 }
 
-func newConnection(ctx context.Context, dialContext dialer, opts ...client.ConnectionOption) (*Connection, error) {
-	options := client.NewConnectionOptions(opts...)
+func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOption) (*Connection, error) {
+	options := NewConnectionOptions(opts...)
 
-	tlsConf, err := internal.TLSConfig(options.Insecure)
+	tlsConf, err := tlsconf.TLSConfig(options.Insecure)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to setup tls configuration")
 	}
@@ -175,5 +176,5 @@ func serverAddress(addr string) string {
 		return addr
 	}
 
-	return internal.HostedAuthorizerHostname + internal.HostedAuthorizerGRPCPort
+	return hosted.HostedAuthorizerHostname + hosted.HostedAuthorizerGRPCPort
 }

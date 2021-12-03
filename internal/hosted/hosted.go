@@ -1,4 +1,4 @@
-package internal
+package hosted
 
 const (
 	// Host name of Aserto's hosted authorizer service.

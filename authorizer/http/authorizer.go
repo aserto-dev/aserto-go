@@ -1,4 +1,4 @@
-package authorizer
+package http
 
 import (
 	"bytes"
@@ -10,7 +10,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev/aserto-go/client/internal"
+	"github.com/aserto-dev/aserto-go/internal/hosted"
+	"github.com/aserto-dev/aserto-go/internal/tlsconf"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 
 	"google.golang.org/grpc"
@@ -18,7 +19,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type AuthorizerClient = authz.AuthorizerClient // nolint:revive
+type AuthorizerClient = authz.AuthorizerClient
 
 // Error codes for REST authorizer.
 var (
@@ -35,7 +36,7 @@ type authorizer struct {
 func New(opts ...client.ConnectionOption) (AuthorizerClient, error) {
 	options := client.NewConnectionOptions(opts...)
 
-	tlsConf, err := internal.TLSConfig(options.Insecure)
+	tlsConf, err := tlsconf.TLSConfig(options.Insecure)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +128,7 @@ func (a *authorizer) serverAddress() string {
 		return a.options.Address
 	}
 
-	return internal.HostedAuthorizerHostname
+	return hosted.HostedAuthorizerHostname
 }
 
 func (a *authorizer) endpointURL(endpoint string) string {

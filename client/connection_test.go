@@ -1,4 +1,4 @@
-package grpc // nolint:testpackage  // white-box tests
+package client
 
 import (
 	"bytes"
@@ -18,7 +18,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aserto-dev/aserto-go/client"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -51,21 +50,21 @@ func (d *dialRecorder) DialContext(
 
 func TestWithAddr(t *testing.T) {
 	recorder := &dialRecorder{}
-	newConnection(context.TODO(), recorder.DialContext, client.WithAddr("address")) // nolint:errcheck
+	newConnection(context.TODO(), recorder.DialContext, WithAddr("address")) // nolint:errcheck
 
 	assert.Equal(t, "address", recorder.address)
 }
 
 func TestWithInsecure(t *testing.T) {
 	recorder := &dialRecorder{}
-	newConnection(context.TODO(), recorder.DialContext, client.WithInsecure(true)) // nolint:errcheck
+	newConnection(context.TODO(), recorder.DialContext, WithInsecure(true)) // nolint:errcheck
 
 	assert.True(t, recorder.tlsConf.InsecureSkipVerify)
 }
 
 func TestWithTokenAuth(t *testing.T) {
 	recorder := &dialRecorder{}
-	newConnection(context.TODO(), recorder.DialContext, client.WithTokenAuth("<token>")) // nolint:errcheck
+	newConnection(context.TODO(), recorder.DialContext, WithTokenAuth("<token>")) // nolint:errcheck
 
 	md, err := recorder.callerCreds.GetRequestMetadata(context.TODO())
 	assert.NoError(t, err)
@@ -77,7 +76,7 @@ func TestWithTokenAuth(t *testing.T) {
 
 func TestWithAPIKey(t *testing.T) {
 	recorder := &dialRecorder{}
-	newConnection(context.TODO(), recorder.DialContext, client.WithAPIKeyAuth("<apikey>")) // nolint:errcheck
+	newConnection(context.TODO(), recorder.DialContext, WithAPIKeyAuth("<apikey>")) // nolint:errcheck
 
 	md, err := recorder.callerCreds.GetRequestMetadata(context.TODO())
 	assert.NoError(t, err)
@@ -89,7 +88,7 @@ func TestWithAPIKey(t *testing.T) {
 
 func TestWithTenantID(t *testing.T) {
 	recorder := &dialRecorder{}
-	newConnection(context.TODO(), recorder.DialContext, client.WithTenantID("<tenantid>")) // nolint:errcheck
+	newConnection(context.TODO(), recorder.DialContext, WithTenantID("<tenantid>")) // nolint:errcheck
 
 	assert.Equal(t, "<tenantid>", recorder.connection.TenantID)
 
@@ -161,7 +160,7 @@ func TestWithCACertPath(t *testing.T) {
 	assert.NoError(t, err, "Failed to save certificate")
 
 	recorder := &dialRecorder{}
-	newConnection(context.TODO(), recorder.DialContext, client.WithCACertPath(caPath)) // nolint:errcheck
+	newConnection(context.TODO(), recorder.DialContext, WithCACertPath(caPath)) // nolint:errcheck
 
 	inPool, err := subjectInCertPool(recorder.tlsConf.RootCAs, CertSubjectName)
 	if err != nil {
