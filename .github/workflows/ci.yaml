@@ -16,7 +16,7 @@ on:
 env:
   VAULT_ADDR: https://vault.eng.aserto.com/
   PRE_RELEASE: ${{ github.ref == 'refs/heads/main' && 'development' || '' }}
-  GO_VERSION: "1.16"
+  GO_VERSION: "1.17"
 
 jobs:
   test:
@@ -61,7 +61,7 @@ jobs:
           git config --global user.name "Aserto Bot"
           eval `ssh-agent`
           ssh-add $HOME/.ssh/id_rsa
-          go run mage.go deps 
+          go run mage.go deps
       - name: Lint
         run: |
           go run mage.go lint

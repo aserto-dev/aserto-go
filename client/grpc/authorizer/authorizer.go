@@ -6,12 +6,12 @@ import (
 	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/client/grpc"
 
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 
 	"github.com/pkg/errors"
 )
 
-type AuthorizerClient authz.AuthorizerClient
+type AuthorizerClient authorizer.AuthorizerClient // nolint:revive
 
 // NewAuthorizerClient creates a new AuthorizerClient using the specified connection options.
 func New(ctx context.Context, opts ...client.ConnectionOption) (AuthorizerClient, error) {
@@ -20,5 +20,5 @@ func New(ctx context.Context, opts ...client.ConnectionOption) (AuthorizerClient
 		return nil, errors.Wrap(err, "create grpc client failed")
 	}
 
-	return authz.NewAuthorizerClient(connection.Conn), nil
+	return authorizer.NewAuthorizerClient(connection.Conn), nil
 }

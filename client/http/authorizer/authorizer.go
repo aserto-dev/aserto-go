@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -19,7 +18,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type AuthorizerClient = authz.AuthorizerClient
+type AuthorizerClient = authz.AuthorizerClient // nolint:revive
 
 // Error codes for REST authorizer.
 var (
@@ -120,7 +119,7 @@ func (a *authorizer) postAPIRequest(
 	}
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 
 func (a *authorizer) serverAddress() string {
@@ -191,7 +190,7 @@ func (a *authorizer) addAuthenticationHeader(req *http.Request) (err error) {
 }
 
 func tryReadText(reader io.Reader) string {
-	content, err := ioutil.ReadAll(reader)
+	content, err := io.ReadAll(reader)
 	if err != nil {
 		return fmt.Sprintf("failed to read response body: %s", err.Error())
 	}

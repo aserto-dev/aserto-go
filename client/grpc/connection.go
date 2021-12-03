@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"crypto/tls"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/aserto-dev/aserto-go/client"
@@ -106,7 +106,7 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...client.Conne
 	}
 
 	if options.CACertPath != "" {
-		caCertBytes, err := ioutil.ReadFile(options.CACertPath)
+		caCertBytes, err := os.ReadFile(options.CACertPath)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to read ca cert [%s]", options.CACertPath)
 		}
