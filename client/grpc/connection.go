@@ -18,7 +18,7 @@ import (
 //
 // The tenant ID is automatically sent to the backend on each request using a ClientInterceptor.
 type Connection struct {
-	Conn     *grpc.ClientConn
+	Conn     grpc.ClientConnInterface
 	TenantID string
 }
 
@@ -70,7 +70,7 @@ type dialer func(
 	tlsConf *tls.Config,
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
-) (*grpc.ClientConn, error)
+) (grpc.ClientConnInterface, error)
 
 // dialContext is the default dialer that calls grpc.DialContext to establish a connection.
 func dialContext(
@@ -79,7 +79,7 @@ func dialContext(
 	tlsConf *tls.Config,
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
-) (*grpc.ClientConn, error) {
+) (grpc.ClientConnInterface, error) {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(credentials.NewTLS(tlsConf)),
 		grpc.WithBlock(),

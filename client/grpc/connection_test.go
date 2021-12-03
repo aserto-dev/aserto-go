@@ -39,7 +39,7 @@ func (d *dialRecorder) DialContext(
 	tlsConf *tls.Config,
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
-) (*grpc.ClientConn, error) {
+) (grpc.ClientConnInterface, error) {
 	d.context = ctx
 	d.address = address
 	d.tlsConf = tlsConf
@@ -99,7 +99,7 @@ func TestWithTenantID(t *testing.T) {
 		"method",
 		"request",
 		"reply",
-		recorder.connection.Conn,
+		recorder.connection.Conn.(*grpc.ClientConn),
 		func(c context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 			md, ok := metadata.FromOutgoingContext(c)
 			assert.True(t, ok)
@@ -119,7 +119,7 @@ func TestWithTenantID(t *testing.T) {
 	recorder.connection.stream( // nolint:errcheck
 		ctx,
 		nil,
-		recorder.connection.Conn,
+		recorder.connection.Conn.(*grpc.ClientConn),
 		"method",
 		func(
 			c context.Context,
