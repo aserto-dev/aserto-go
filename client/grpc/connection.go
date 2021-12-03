@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"io/ioutil"
 	"time"
 
@@ -134,8 +133,6 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...client.Conne
 		options.Creds,
 		connection,
 	)
-
-	fmt.Println("Dial complete:", err)
 
 	if err != nil {
 		return nil, err
