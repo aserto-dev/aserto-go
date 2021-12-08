@@ -13,7 +13,7 @@ bin:
 go:
   gotestsum:
     importPath: "gotest.tools/gotestsum"
-    version: "v1.6.2"
+    version: "v1.7.0"
   golangci-lint:
     importPath: "github.com/golangci/golangci-lint/cmd/golangci-lint"
     version: "v1.43.0"
