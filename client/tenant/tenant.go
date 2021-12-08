@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/client"
+	"google.golang.org/grpc"
 
 	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 	account "github.com/aserto-dev/go-grpc/aserto/tenant/account/v1"
@@ -53,4 +54,8 @@ func New(ctx context.Context, opts ...client.ConnectionOption) (*Client, error) 
 // SetTenantID provides a tenantID to be included in outgoing messages.
 func (c *Client) SetTenantID(tenantID string) {
 	c.conn.TenantID = tenantID
+}
+
+func (c *Client) Connection() grpc.ClientConnInterface {
+	return c.conn.Conn
 }
