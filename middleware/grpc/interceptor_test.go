@@ -14,13 +14,13 @@ import (
 )
 
 type TestCase struct {
-	*test.TestCase
+	*test.Case
 	expectedErr error
 	middleware  *grpcmw.Middleware
 }
 
 type testOptions struct {
-	test.TestOptions
+	test.Options
 	expectedErr error
 	callback    func(*grpcmw.Middleware)
 }
@@ -32,7 +32,7 @@ func NewTest(t *testing.T, name string, options *testOptions) *TestCase {
 		options.PolicyPath = DefaultPolicyPath
 	}
 
-	base := test.NewTest(t, name, &options.TestOptions)
+	base := test.NewTest(t, name, &options.Options)
 
 	mw := grpcmw.New(base.Client, test.Policy(DefaultPolicyPath))
 
@@ -42,7 +42,7 @@ func NewTest(t *testing.T, name string, options *testOptions) *TestCase {
 		options.callback(mw)
 	}
 
-	return &TestCase{TestCase: base, middleware: mw, expectedErr: options.expectedErr}
+	return &TestCase{Case: base, middleware: mw, expectedErr: options.expectedErr}
 }
 
 func TestAuthorizer(t *testing.T) {
@@ -56,7 +56,7 @@ func TestAuthorizer(t *testing.T) {
 			t,
 			"unauthorized decisions should err",
 			&testOptions{
-				TestOptions: test.TestOptions{
+				Options: test.Options{
 					Reject: true,
 				},
 				expectedErr: middleware.ErrUnauthorized,
@@ -66,7 +66,7 @@ func TestAuthorizer(t *testing.T) {
 			t,
 			"policy mapper should override policy path",
 			&testOptions{
-				TestOptions: test.TestOptions{
+				Options: test.Options{
 					PolicyPath: test.OverridePolicyPath,
 				},
 				callback: func(mw *grpcmw.Middleware) {

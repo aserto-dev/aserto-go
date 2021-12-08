@@ -1,17 +1,17 @@
-package authorizer
+package http
 
 import (
 	"bytes"
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/pkg/errors"
 
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev/aserto-go/client/internal"
+	"github.com/aserto-dev/aserto-go/internal/hosted"
+	"github.com/aserto-dev/aserto-go/internal/tlsconf"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 
 	"google.golang.org/grpc"
@@ -36,7 +36,7 @@ type authorizer struct {
 func New(opts ...client.ConnectionOption) (AuthorizerClient, error) {
 	options := client.NewConnectionOptions(opts...)
 
-	tlsConf, err := internal.TLSConfig(options.Insecure)
+	tlsConf, err := tlsconf.TLSConfig(options.Insecure)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (a *authorizer) postAPIRequest(
 	}
 	defer resp.Body.Close()
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 
 func (a *authorizer) serverAddress() string {
@@ -128,7 +128,7 @@ func (a *authorizer) serverAddress() string {
 		return a.options.Address
 	}
 
-	return internal.HostedAuthorizerHostname
+	return hosted.HostedAuthorizerHostname
 }
 
 func (a *authorizer) endpointURL(endpoint string) string {
@@ -191,7 +191,7 @@ func (a *authorizer) addAuthenticationHeader(req *http.Request) (err error) {
 }
 
 func tryReadText(reader io.Reader) string {
-	content, err := ioutil.ReadAll(reader)
+	content, err := io.ReadAll(reader)
 	if err != nil {
 		return fmt.Sprintf("failed to read response body: %s", err.Error())
 	}

@@ -1,13 +1,14 @@
-package grpc
+package client
 
 import (
 	"context"
 	"crypto/tls"
-	"io/ioutil"
+	"os"
 	"time"
 
-	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/client/internal"
+	"github.com/aserto-dev/aserto-go/internal/hosted"
+	"github.com/aserto-dev/aserto-go/internal/tlsconf"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -18,7 +19,7 @@ import (
 //
 // The tenant ID is automatically sent to the backend on each request using a ClientInterceptor.
 type Connection struct {
-	Conn     *grpc.ClientConn
+	Conn     grpc.ClientConnInterface
 	TenantID string
 }
 
@@ -58,7 +59,7 @@ context, the default connection timeout is 5 seconds. For example, to increase t
 	)
 
 */
-func NewConnection(ctx context.Context, opts ...client.ConnectionOption) (*Connection, error) {
+func NewConnection(ctx context.Context, opts ...ConnectionOption) (*Connection, error) {
 	return newConnection(ctx, dialContext, opts...)
 }
 
@@ -70,7 +71,7 @@ type dialer func(
 	tlsConf *tls.Config,
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
-) (*grpc.ClientConn, error)
+) (grpc.ClientConnInterface, error)
 
 // dialContext is the default dialer that calls grpc.DialContext to establish a connection.
 func dialContext(
@@ -79,7 +80,7 @@ func dialContext(
 	tlsConf *tls.Config,
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
-) (*grpc.ClientConn, error) {
+) (grpc.ClientConnInterface, error) {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(credentials.NewTLS(tlsConf)),
 		grpc.WithBlock(),
@@ -97,16 +98,16 @@ func dialContext(
 	)
 }
 
-func newConnection(ctx context.Context, dialContext dialer, opts ...client.ConnectionOption) (*Connection, error) {
-	options := client.NewConnectionOptions(opts...)
+func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOption) (*Connection, error) {
+	options := NewConnectionOptions(opts...)
 
-	tlsConf, err := internal.TLSConfig(options.Insecure)
+	tlsConf, err := tlsconf.TLSConfig(options.Insecure)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to setup tls configuration")
 	}
 
 	if options.CACertPath != "" {
-		caCertBytes, err := ioutil.ReadFile(options.CACertPath)
+		caCertBytes, err := os.ReadFile(options.CACertPath)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to read ca cert [%s]", options.CACertPath)
 		}
@@ -175,5 +176,5 @@ func serverAddress(addr string) string {
 		return addr
 	}
 
-	return internal.HostedAuthorizerHostname + internal.HostedAuthorizerGRPCPort
+	return hosted.HostedAuthorizerHostname + hosted.HostedAuthorizerGRPCPort
 }

@@ -11,13 +11,13 @@ import (
 )
 
 type TestCase struct {
-	*test.TestCase
+	*test.Case
 	expectedStatusCode int
 	middleware         *httpmw.Middleware
 }
 
 type testOptions struct {
-	test.TestOptions
+	test.Options
 	expectedStatusCode int
 	callback           func(*httpmw.Middleware)
 }
@@ -37,7 +37,7 @@ func NewTest(t *testing.T, name string, options *testOptions) *TestCase {
 		options.expectedStatusCode = http.StatusOK
 	}
 
-	base := test.NewTest(t, name, &options.TestOptions)
+	base := test.NewTest(t, name, &options.Options)
 
 	mw := httpmw.New(base.Client, test.Policy(""))
 
@@ -47,7 +47,7 @@ func NewTest(t *testing.T, name string, options *testOptions) *TestCase {
 		options.callback(mw)
 	}
 
-	return &TestCase{TestCase: base, expectedStatusCode: options.expectedStatusCode, middleware: mw}
+	return &TestCase{Case: base, expectedStatusCode: options.expectedStatusCode, middleware: mw}
 }
 
 func TestAuthorizer(t *testing.T) {
@@ -61,7 +61,7 @@ func TestAuthorizer(t *testing.T) {
 			t,
 			"unauthorized decisions should err",
 			&testOptions{
-				TestOptions: test.TestOptions{
+				Options: test.Options{
 					Reject: true,
 				},
 				expectedStatusCode: http.StatusUnauthorized,
@@ -71,7 +71,7 @@ func TestAuthorizer(t *testing.T) {
 			t,
 			"policy mapper should override policy path",
 			&testOptions{
-				TestOptions: test.TestOptions{
+				Options: test.Options{
 					PolicyPath: test.OverridePolicyPath,
 				},
 				callback: func(mw *httpmw.Middleware) {

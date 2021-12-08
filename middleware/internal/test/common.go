@@ -20,29 +20,29 @@ const (
 	OverridePolicyPath = "override.policy.path"
 )
 
-type TestCase struct {
+type Case struct {
 	Name   string
 	Client *mock.Authorizer
 }
 
-type TestOptions struct {
+type Options struct {
 	ExpectedRequest *authorizer.IsRequest
 	Reject          bool
 	PolicyPath      string
 }
 
-func (opts *TestOptions) HasPolicy() bool {
+func (opts *Options) HasPolicy() bool {
 	return opts.ExpectedRequest != nil || opts.PolicyPath != ""
 }
 
-func NewTest(t *testing.T, name string, options *TestOptions) *TestCase {
+func NewTest(t *testing.T, name string, options *Options) *Case {
 	if options.ExpectedRequest == nil {
 		options.ExpectedRequest = Request(PolicyPath(options.PolicyPath))
 	}
 
 	mockAuth := mock.New(t, options.ExpectedRequest, Decision(!options.Reject))
 
-	return &TestCase{Name: name, Client: mockAuth}
+	return &Case{Name: name, Client: mockAuth}
 }
 
 func Policy(path string) middleware.Policy {

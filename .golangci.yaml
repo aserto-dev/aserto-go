@@ -103,7 +103,6 @@ linters:
     - prealloc
     - revive
     - rowserrcheck
-    - scopelint
     - staticcheck
     - structcheck
     - stylecheck
@@ -135,7 +134,7 @@ issues:
       - gocritic
     - text: "unnamedResult:"
       linters:
-      - gocritic      
+      - gocritic
 
 run:
   skip-dirs:
