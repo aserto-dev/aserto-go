@@ -18,17 +18,33 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Client tenant gRPC connection.
+// Client provides access to the Aserto control service.
 type Client struct {
-	conn        *client.Connection
-	Account     account.AccountClient
+	conn *client.Connection
+
+	// Account provides methods for managing a customer account.
+	Account account.AccountClient
+
+	// Connections provides methods to create and manage connections.
 	Connections connection.ConnectionClient
-	Onboarding  onboarding.OnboardingClient
-	Policy      policy.PolicyClient
-	Profile     profile.ProfileClient
-	Provider    provider.ProviderClient
-	SCC         scc.SourceCodeCtlClient
-	Info        info.InfoClient
+
+	// Onboarding provides methods to create tenants and invite users.
+	Onboarding onboarding.OnboardingClient
+
+	// Policy provides methods for creating, listing, and deleting policy references.
+	Policy policy.PolicyClient
+
+	// Profile provides methods for managing user invitations.
+	Profile profile.ProfileClient
+
+	// Provider provides methods for viewing the providers available to create connections.
+	Provider provider.ProviderClient
+
+	// SCC provides methods for interacting with a tenant's configured source-control repositories.
+	SCC scc.SourceCodeCtlClient
+
+	// Info provides methods for retrieving system information and configuration.
+	Info info.InfoClient
 }
 
 // New creates a tenant Client with the specified connection options.
