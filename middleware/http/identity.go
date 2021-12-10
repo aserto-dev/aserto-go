@@ -16,7 +16,7 @@ type IdentityMapper func(*http.Request, middleware.Identity)
 
 // IdentityBuilder is used to configure what information about caller identity is sent in authorization calls.
 type IdentityBuilder struct {
-	Identity internal.Identity
+	identity internal.Identity
 	mapper   IdentityMapper
 }
 
@@ -29,7 +29,7 @@ type IdentityBuilder struct {
 //
 //  idBuilder.JWT().FromHeader("Authorization")
 func (b *IdentityBuilder) JWT() *IdentityBuilder {
-	b.Identity.JWT()
+	b.identity.JWT()
 	return b
 }
 
@@ -40,13 +40,13 @@ func (b *IdentityBuilder) JWT() *IdentityBuilder {
 //
 //  idBuilder.Subject().FromContextValue("username")
 func (b *IdentityBuilder) Subject() *IdentityBuilder {
-	b.Identity.Subject()
+	b.identity.Subject()
 	return b
 }
 
 // Call None() to indicate that requests are unauthenticated.
 func (b *IdentityBuilder) None() *IdentityBuilder {
-	b.Identity.None()
+	b.identity.None()
 	return b
 }
 
@@ -54,7 +54,7 @@ func (b *IdentityBuilder) None() *IdentityBuilder {
 // tries to infer whether the specified identity is a JWT or not.
 // Passing an empty string is the same as calling .None() and results in an authorization check for anonymous access.
 func (b *IdentityBuilder) ID(identity string) *IdentityBuilder {
-	b.Identity.ID(identity)
+	b.identity.ID(identity)
 	return b
 }
 
@@ -122,16 +122,16 @@ func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 
 func (b *IdentityBuilder) build(r *http.Request) *api.IdentityContext {
 	if b.mapper != nil {
-		b.mapper(r, &b.Identity)
+		b.mapper(r, &b.identity)
 	}
 
-	return b.Identity.Context()
+	return b.identity.Context()
 }
 
 func (b *IdentityBuilder) fromAuthzHeader(value string) string {
 	// Authorization header is special. Need to remove "Bearer" auth scheme.
 	value = strings.TrimSpace(strings.TrimPrefix(value, "Bearer"))
-	if b.Identity.IsSubject() {
+	if b.identity.IsSubject() {
 		// Try to parse subject out of token
 		token, err := jwt.ParseString(value)
 		if err == nil {

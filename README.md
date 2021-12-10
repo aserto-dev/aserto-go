@@ -1,9 +1,15 @@
-# Aserto Go SDK
+# aserto-dev/aserto-go
 
-The `aserto-go` module provides access to the Aserto authorizer and supporting services.
+Package `aserto-go` implements clients and middleware for the Aserto authorizer and supporting services.
 
 Authorization requests are performed using an AuthorizerClient.
 A client can be used on its own to make authorization calls or, more commonly, it can be used to create server middleware.
+
+## Install
+
+```sh
+go get -u github.com/aserto-dev/aserto-go
+```
 
 ## AuthorizerClient
 
