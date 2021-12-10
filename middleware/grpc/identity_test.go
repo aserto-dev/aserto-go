@@ -41,7 +41,7 @@ func TestAssignmentOverride(t *testing.T) {
 		t,
 		Anon(),
 		(&IdentityBuilder{}).JWT().None().build(context.TODO(), nil),
-		builder.Identity.Context().Type,
+		builder.identity.Context().Type,
 		"Expected NONE identity to override JWT",
 	)
 }

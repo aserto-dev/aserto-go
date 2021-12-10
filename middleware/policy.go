@@ -1,6 +1,13 @@
+/*
+Package middleware provides components that integrate Aserto authorization to gRPC or HTTP servers.
+
+1. middleware/grpc provides middleware for "google.golang.org/grpc" servers.
+
+2. middleware/http provides middleware for servers based on "net/http".
+*/
 package middleware
 
-// Policy holds global authorization options that apply to all requests.
+// Policy holds authorization options that apply to all requests.
 type Policy struct {
 	// ID is the ID of the aserto policy being queried for authorization.
 	ID string

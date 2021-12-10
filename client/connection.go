@@ -1,3 +1,12 @@
+/*
+Package client provides communication with the Aserto services.
+
+There are two groups of services:
+
+1. client/authorizer provides access to the authorizer service and the edge services running alongside it.
+
+2. client/tenant provides access to the Aserto control plane services.
+*/
 package client
 
 import (
@@ -19,7 +28,10 @@ import (
 //
 // The tenant ID is automatically sent to the backend on each request using a ClientInterceptor.
 type Connection struct {
-	Conn     grpc.ClientConnInterface
+	// Conn is the underlying gRPC connection to the backend service.
+	Conn grpc.ClientConnInterface
+
+	// TenantID is the ID of the Aserto tenant making the connection.
 	TenantID string
 }
 

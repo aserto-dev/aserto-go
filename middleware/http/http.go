@@ -1,7 +1,8 @@
 /*
-This package provides authorization middleware for HTTP servers built on top of net/http.
+Package http provides authorization middleware for HTTP servers built on top of net/http.
+
 The middleware intercepts incoming requests and calls the Aserto authorizer service to determine if access should
-be granted.
+be allowed or denied.
 */
 package http
 
