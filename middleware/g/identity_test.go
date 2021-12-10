@@ -1,4 +1,4 @@
-package grpc // nolint:testpackage // Testing unexported method .build()
+package g // nolint:testpackage // Testing unexported method .build()
 
 import (
 	"context"

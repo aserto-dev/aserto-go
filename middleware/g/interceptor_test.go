@@ -1,4 +1,4 @@
-package grpc_test
+package g_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aserto-dev/aserto-go/middleware"
-	grpcmw "github.com/aserto-dev/aserto-go/middleware/grpc"
+	grpcmw "github.com/aserto-dev/aserto-go/middleware/g"
 	"github.com/aserto-dev/aserto-go/middleware/internal/mock"
 	"github.com/aserto-dev/aserto-go/middleware/internal/test"
 	"github.com/stretchr/testify/assert"

@@ -21,9 +21,9 @@ Middleware
 
 Two middleware implementations are available in subpackages:
 
-1. middleware/grpc provides middleware for gRPC servers.
+1. middleware/g provides middleware for gRPC servers.
 
-2. middleware/http provides middleware for HTTP REST servers.
+2. middleware/h provides middleware for HTTP REST servers.
 
 When authorization middleware is configured and attached to a server, it examines incoming requests, extracts
 authorization parameters like the caller's identity, calls the Aserto authorizers, and rejects messages if their

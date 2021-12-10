@@ -19,9 +19,9 @@ describes the operations exposed by the Aserto authorizer service.
 
 Two implementation of `AuthorizerClient` are available:
 
-1. `authorizer/grpc` provides a client that communicates with the authorizer using gRPC.
+1. `authz` provides a client that communicates with the authorizer using gRPC. It is recommended in most use cases.
 
-2. `authorizer/http` provides a client that communicates with the authorizer over its REST HTTP endpoints.
+2. `authz/http` provides a client that communicates with the authorizer over its REST HTTP endpoints.
 
 
 Create a new client using `New()` in either package.
@@ -31,10 +31,10 @@ The snippet below creates an authorizer client that talks to Aserto's hosted aut
 ```go
 import (
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev-aserto-go/authorizer/grpc"
+	"github.com/aserto-dev-aserto-go/authz"
 )
 ...
-authorizer, err := grpc.New(
+authorizer, err := authz.New(
 	ctx,
 	client.WithAPIKeyAuth("<API Key>"),
 	client.WithTenantID("<Tenant ID>"),
@@ -67,7 +67,7 @@ context, the default connection timeout is 5 seconds. For example, to increase t
 ```go
 ctx := context.Background()
 
-authorizer, err := grpc.New(
+authClient, err := authz.New(
 	context.WithTimeout(ctx, time.Duration(10) * time.Second),
 	aserto.WithAPIKeyAuth("<API Key>"),
 	aserto.WithTenantID("<Tenant ID>"),
@@ -81,11 +81,11 @@ Use the client's `Is()` method to request authorization decisions from the Asert
 
 ```go
 import (
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
 )
 
-resp, err := authorizer.Is(c.Context, &authz.IsRequest{
+resp, err := authClient.Is(c.Context, &authz.IsRequest{
 	PolicyContext: &api.PolicyContext{
 		Id:        "peoplefinder",
 		Path:      "peoplefinder.GET.users.__id",
@@ -103,8 +103,8 @@ resp, err := authorizer.Is(c.Context, &authz.IsRequest{
 
 Two middleware implementations are available in subpackages:
 
-* `middleware/grpc` provides middleware for gRPC servers.
-* `middleware/http` provides middleware for HTTP REST servers.
+* `middleware/g` provides middleware for gRPC servers.
+* `middleware/h` provides middleware for HTTP REST servers.
 
 When authorization middleware is configured and attached to a server, it examines incoming requests, extracts
 authorization parameters like the caller's identity, calls the Aserto authorizers, and rejects messages if their
@@ -200,17 +200,17 @@ In addition to these, each middleware has built-in mappers that can handle commo
 
 ### gRPC Middleware
 
-The gRPC middleware is available in the sub-package `middleware/grpc`.
+The gRPC middleware is available in the sub-package `middleware/g`.
 It implements unary and stream gRPC server interceptors in its `.Unary()` and `.Stream()` methods.
 
 ```go
 import (
 	"github.com/aserto-dev/aserto-go/middleware"
-	grpcmw "github.com/aserto-dev/aserto-go/middleware/grpc"
+	"github.com/aserto-dev/aserto-go/middleware/g"
 	"google.golang.org/grpc"
 )
 ...
-middleware, err := grpcmw.New(
+middleware, err := g.New(
 	client,
 	middleware.Policy{
 		PolicyID: "<Policy ID>",
@@ -253,16 +253,16 @@ The default behavior of the gRPC middleware is:
 
 ### HTTP Middleware
 
-The HTTP middleware is available in the sub-package `middleware/http`.
+The HTTP middleware is available in the sub-package `middleware/h`.
 It implements the standard `net/http` middleware signature (`func (http.Handler) http.Handler`) in its `.Handler` method.
 
 ```go
 import (
 	"github.com/aserto-dev/aserto-go/middleware"
-	httpmw "github.com/aserto-dev/aserto-go/middleware/http"
+	"github.com/aserto-dev/aserto-go/middleware/h"
 )
 ...
-mw := httpmw.New(
+mw := h.New(
 	client,
 	middleware.Policy{
 		PolicyID: "<Policy ID>",

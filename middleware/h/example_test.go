@@ -1,13 +1,13 @@
-package http_test
+package h_test
 
 import (
 	"context"
 	"log"
 	"net/http"
 
-	"github.com/aserto-dev/aserto-go/authorizer/grpc"
+	"github.com/aserto-dev/aserto-go/authz"
 	"github.com/aserto-dev/aserto-go/client"
-	mw "github.com/aserto-dev/aserto-go/middleware/http"
+	mw "github.com/aserto-dev/aserto-go/middleware/h"
 )
 
 func Hello(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +20,7 @@ func Example() {
 	ctx := context.Background()
 
 	// Create authorizer client.
-	authorizer, err := grpc.New(
+	authorizer, err := authz.New(
 		ctx,
 		client.WithAPIKeyAuth("<Aserto authorizer API Key>"),
 		client.WithTenantID("<Aserto tenant ID>"),

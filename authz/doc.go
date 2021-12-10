@@ -14,4 +14,4 @@ most users.
 
 2. authorizer/http implements a client that communicates with the authorizer service using its REST endpoints.
 */
-package authorizer
+package authz

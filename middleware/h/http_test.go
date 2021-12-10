@@ -1,11 +1,11 @@
-package http_test
+package h_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	httpmw "github.com/aserto-dev/aserto-go/middleware/http"
+	httpmw "github.com/aserto-dev/aserto-go/middleware/h"
 	"github.com/aserto-dev/aserto-go/middleware/internal/test"
 	"github.com/stretchr/testify/assert"
 )

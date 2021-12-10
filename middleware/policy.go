@@ -1,9 +1,9 @@
 /*
 Package middleware provides components that integrate Aserto authorization to gRPC or HTTP servers.
 
-1. middleware/grpc provides middleware for "google.golang.org/grpc" servers.
+1. middleware/g provides middleware for "google.golang.org/grpc" servers.
 
-2. middleware/http provides middleware for servers based on "net/http".
+2. middleware/h provides middleware for servers based on "net/http".
 */
 package middleware
 

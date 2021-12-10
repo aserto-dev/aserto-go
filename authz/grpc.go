@@ -1,9 +1,9 @@
 /*
-Package grpc is used to create an AuthorizerClient that communicates with the authorizer using gRPC.
+Package authzis used to create an AuthorizerClient that communicates with the authorizer using gRPC.
 
 AuthorizerClient is the low-level interface that exposes the raw authorization API.
 */
-package grpc
+package authz
 
 import (
 	"context"

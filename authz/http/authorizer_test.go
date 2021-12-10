@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aserto-dev/aserto-go/authorizer/http"
+	authz "github.com/aserto-dev/aserto-go/authz/http"
 	"github.com/aserto-dev/aserto-go/client"
 
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
 )
 
@@ -16,7 +16,7 @@ func Example() {
 	ctx := context.Background()
 
 	// Create new authorizer client.
-	authorizer, err := http.New(
+	authClient, err := authz.New(
 		client.WithAPIKeyAuth("<Aserto authorizer API key"),
 		client.WithTenantID("<Aserto tenant ID>"),
 	)
@@ -25,9 +25,9 @@ func Example() {
 	}
 
 	// Make an authorization call.
-	result, err := authorizer.Is(
+	result, err := authClient.Is(
 		ctx,
-		&authz.IsRequest{
+		&authorizer.IsRequest{
 			PolicyContext: &api.PolicyContext{
 				Id:        "<Aserto Policy ID>",
 				Path:      "<Policy path (e.g. 'peoplefinder.GET.users')",

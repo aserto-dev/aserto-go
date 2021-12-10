@@ -1,4 +1,4 @@
-package http // nolint:testpackage  // testing unexported logic
+package h // nolint:testpackage  // testing unexported logic
 
 import (
 	"testing"
