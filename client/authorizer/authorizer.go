@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Client provides access to Aserto edge services.
+// Client provides access to the Aserto authorization services.
 type Client struct {
 	conn *client.Connection
 
