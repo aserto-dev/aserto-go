@@ -21,11 +21,25 @@ import (
 
 type AuthorizerClient = authz.AuthorizerClient
 
-// Error codes for REST authorizer.
-var (
-	ErrHTTPFailure  = errors.New("received http failure response")
-	ErrNotSupported = errors.New("unsupported feature")
-)
+// ErrHttp is returned in response to failed HTTP requests to the authorizer.
+type ErrHTTP struct {
+	// Status text (e.g. "200 OK")
+	Status string
+
+	// Status code
+	StatusCode int
+
+	// Response body decoded as a string.
+	Body string
+}
+
+// Error returns a string representation of the HTTP error.
+func (e *ErrHTTP) Error() string {
+	return fmt.Sprintf("status: %s. body: %s", e.Status, e.Body)
+}
+
+// ErrNotSupported is returned when gRPC options are passed to the HTTP client.
+var ErrNotSupported = errors.New("unsupported feature")
 
 type authorizer struct {
 	httpClient *http.Client
@@ -158,14 +172,11 @@ func (a *authorizer) postRequest(ctx context.Context, url string, message proto.
 	if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 
-		return nil,
-			errors.Wrap(
-				ErrHTTPFailure,
-				fmt.Sprintf("http request failed. status: '%s'. body: '%s'",
-					resp.Status,
-					tryReadText(resp.Body),
-				),
-			)
+		return nil, &ErrHTTP{
+			Status:     resp.Status,
+			StatusCode: resp.StatusCode,
+			Body:       tryReadText(resp.Body),
+		}
 	}
 
 	return resp, nil
