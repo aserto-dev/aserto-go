@@ -8,10 +8,11 @@ import (
 	"github.com/aserto-dev/aserto-go/authorizer/grpc"
 	"github.com/aserto-dev/aserto-go/client"
 	mw "github.com/aserto-dev/aserto-go/middleware/http"
+	"github.com/gorilla/mux"
 )
 
-func Example_nethttp() {
-	// Using Aserto middleware with net/http.
+func Example_gorillamux() {
+	// Using Aserto middleware with gorilla/mux.
 
 	Hello := func(w http.ResponseWriter, r *http.Request) {
 		if _, err := w.Write([]byte(`"hello"`)); err != nil {
@@ -41,11 +42,13 @@ func Example_nethttp() {
 	)
 
 	// Create ServeMux.
-	mux := http.NewServeMux()
+	r := mux.NewRouter()
+	r.Use(middleware.Handler)
 
 	// Define HTTP route with middleware.
-	mux.Handle("/", middleware.Handler(http.HandlerFunc(Hello)))
+	r.Handle("/", http.HandlerFunc(Hello))
 
 	// Start server.
 	log.Fatal(http.ListenAndServe(":8080", nil))
+
 }
