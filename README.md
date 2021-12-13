@@ -1,5 +1,9 @@
 # aserto-dev/aserto-go
 
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/aserto-dev/aserto-go.svg)](https://pkg.go.dev/github.com/aserto-dev/aserto-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aserto-dev/aserto-go)](https://goreportcard.com/report/github.com/aserto-dev/aserto-go)
+
 Package `aserto-go` implements clients and middleware for the [Aserto](http://aserto.com) authorizer and supporting services.
 
 Authorization requests are performed using an AuthorizerClient.
