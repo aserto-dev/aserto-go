@@ -1,9 +1,17 @@
 # aserto-dev/aserto-go
 
-Package `aserto-go` implements clients and middleware for the Aserto authorizer and supporting services.
+![ci](https://github.com/aserto-dev/aserto-go/workflows/ci/badge.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/aserto-dev/aserto-go.svg)](https://pkg.go.dev/github.com/aserto-dev/aserto-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aserto-dev/aserto-go)](https://goreportcard.com/report/github.com/aserto-dev/aserto-go)
+
+Package `aserto-go` implements clients and middleware for the [Aserto](http://aserto.com) authorizer and supporting services.
 
 Authorization requests are performed using an AuthorizerClient.
 A client can be used on its own to make authorization calls or, more commonly, it can be used to create server middleware.
+
+* Docs: https://docs.aserto.com/docs/
+* API Reference:  https://aserto.readme.io/
+
 
 ## Install
 
