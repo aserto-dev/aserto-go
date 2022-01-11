@@ -189,8 +189,14 @@ func (a *authorizer) postRequest(ctx context.Context, url string, message proto.
 
 func (a *authorizer) addRequestHeaders(req *http.Request) (err error) {
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Aserto-Tenant-Id", a.options.TenantID)
-	err = a.addAuthenticationHeader(req)
+
+	if a.options.TenantID != "" {
+		req.Header.Set("Aserto-Tenant-Id", a.options.TenantID)
+	}
+
+	if a.options.Creds != nil {
+		err = a.addAuthenticationHeader(req)
+	}
 
 	return
 }
