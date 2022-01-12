@@ -111,7 +111,10 @@ func dialContext(
 }
 
 func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOption) (*Connection, error) {
-	options := NewConnectionOptions(opts...)
+	options, err := NewConnectionOptions(opts...)
+	if err != nil {
+		return nil, err
+	}
 
 	tlsConf, err := tlsconf.TLSConfig(options.Insecure)
 	if err != nil {
@@ -141,7 +144,7 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOp
 
 	conn, err := dialContext(
 		ctx,
-		serverAddress(options.Address),
+		serverAddress(options),
 		tlsConf,
 		options.Creds,
 		connection,
@@ -183,9 +186,13 @@ func setTenantContext(ctx context.Context, tenantID string) context.Context {
 	return metadata.AppendToOutgoingContext(ctx, internal.AsertoTenantID, tenantID)
 }
 
-func serverAddress(addr string) string {
-	if addr != "" {
-		return addr
+func serverAddress(opts *ConnectionOptions) string {
+	if opts.URL != nil {
+		return opts.URL.String()
+	}
+
+	if opts.Address != "" {
+		return opts.Address
 	}
 
 	return hosted.HostedAuthorizerHostname + hosted.HostedAuthorizerGRPCPort

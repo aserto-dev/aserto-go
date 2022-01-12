@@ -14,6 +14,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -55,6 +56,28 @@ func TestWithAddr(t *testing.T) {
 	assert.Equal(t, "address", recorder.address)
 }
 
+func TestWithURL(t *testing.T) {
+	recorder := &dialRecorder{}
+
+	const URL = "https://server.com:123"
+	svcURL, err := url.Parse(URL)
+	assert.NoError(t, err)
+
+	newConnection(context.TODO(), recorder.DialContext, WithURL(svcURL)) // nolint:errcheck
+
+	assert.Equal(t, URL, recorder.address)
+}
+
+func TestAddrAndURL(t *testing.T) {
+	recorder := &dialRecorder{}
+
+	svcURL, err := url.Parse("https://server.com:123")
+	assert.NoError(t, err)
+
+	_, err = newConnection(context.TODO(), recorder.DialContext, WithAddr("address"), WithURL(svcURL))
+	assert.Error(t, err)
+}
+
 func TestWithInsecure(t *testing.T) {
 	recorder := &dialRecorder{}
 	newConnection(context.TODO(), recorder.DialContext, WithInsecure(true)) // nolint:errcheck
@@ -84,6 +107,13 @@ func TestWithAPIKey(t *testing.T) {
 	token, ok := md["authorization"]
 	assert.True(t, ok)
 	assert.Equal(t, "basic <apikey>", token)
+}
+
+func TestTokenAndAPIKey(t *testing.T) {
+	recorder := &dialRecorder{}
+
+	_, err := newConnection(context.TODO(), recorder.DialContext, WithAPIKeyAuth("<apikey>"), WithTokenAuth("<token>"))
+	assert.Error(t, err)
 }
 
 func TestWithTenantID(t *testing.T) {

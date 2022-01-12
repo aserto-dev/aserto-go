@@ -1,23 +1,54 @@
 package client
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/aserto-dev/aserto-go/client/internal"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc/credentials"
 )
 
+var ErrInvalidOptions = errors.New("invalid connection options")
+
 // WithInsecure disables TLS verification.
 func WithInsecure(insecure bool) ConnectionOption {
-	return func(options *ConnectionOptions) {
+	return func(options *ConnectionOptions) error {
 		options.Insecure = insecure
+		return nil
 	}
 }
 
 // WithAddr overrides the default authorizer server address.
 //
-// If not specified, Aserto's hosted authorizer at authorizer.prod.aserto.com is used.
+// Note: WithAddr and WithURL are mutually exclusive.
 func WithAddr(addr string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+	return func(options *ConnectionOptions) error {
+		if options.URL != nil {
+			return errors.Wrap(ErrInvalidOptions, "address and url are mutually exclusive")
+		}
+
 		options.Address = addr
+
+		return nil
+	}
+}
+
+// WithURL overrides the default authorizer server URL.
+// Unlike WithAddr, WithURL lets gRPC users to connect to communicate with a locally running authorizer
+// over Unix sockets. See https://github.com/grpc/grpc/blob/master/doc/naming.md#grpc-name-resolution for
+// more details about gRPC name resolution.
+//
+// Note: WithURL and WithAddr are mutually exclusive.
+func WithURL(svcURL *url.URL) ConnectionOption {
+	return func(options *ConnectionOptions) error {
+		if options.Address != "" {
+			return errors.Wrap(ErrInvalidOptions, "url and address are mutually exclusive")
+		}
+
+		options.URL = svcURL
+
+		return nil
 	}
 }
 
@@ -25,36 +56,62 @@ func WithAddr(addr string) ConnectionOption {
 //
 // Include it when calling an authorizer service that uses a self-issued SSL certificate.
 func WithCACertPath(path string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+	return func(options *ConnectionOptions) error {
 		options.CACertPath = path
+
+		return nil
 	}
 }
 
 // WithTokenAuth uses an OAuth2.0 token to authenticate with the authorizer service.
 func WithTokenAuth(token string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+	return func(options *ConnectionOptions) error {
+		if options.Creds != nil {
+			return errors.Wrap(ErrInvalidOptions, "only one set of credentials allowed")
+		}
+
 		options.Creds = internal.NewTokenAuth(token)
+
+		return nil
 	}
 }
 
 // WithAPIKeyAuth uses an Aserto API key to authenticate with the authorizer service.
 func WithAPIKeyAuth(key string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+	return func(options *ConnectionOptions) error {
+		if options.Creds != nil {
+			return errors.Wrap(ErrInvalidOptions, "only one set of credentials allowed")
+		}
+
 		options.Creds = internal.NewAPIKeyAuth(key)
+
+		return nil
 	}
 }
 
 // WithTenantID sets the asserto tenant ID.
 func WithTenantID(tenantID string) ConnectionOption {
-	return func(options *ConnectionOptions) {
+	return func(options *ConnectionOptions) error {
 		options.TenantID = tenantID
+
+		return nil
 	}
 }
 
 // ConnectionOptions holds settings used to establish a connection to the authorizer service.
 type ConnectionOptions struct {
 	// The server's host name and port separated by a colon ("hostname:port").
+	//
+	// Note: Address and URL are mutually exclusive. Only one of them may be set.
 	Address string
+
+	// URL is the authorizer service URL.
+	//
+	// Unlike ConnectionOptions.Address, URL gives gRPC clients the ability to use Unix sockets in addition
+	// to DNS names (see https://github.com/grpc/grpc/blob/master/doc/naming.md#name-syntax)
+	//
+	// Note: Address and URL are mutually exclusive. Only one of them may be set.
+	URL *url.URL
 
 	// Path to a CA certificate file to treat as a root CA for TLS verification.
 	CACertPath string
@@ -70,15 +127,35 @@ type ConnectionOptions struct {
 }
 
 // ConnecionOption functions are used to configure ConnectionOptions instances.
-type ConnectionOption func(*ConnectionOptions)
+type ConnectionOption func(*ConnectionOptions) error
 
-// NewConnectionOptions creates a ConnectionOptions object from a collection of ConnectionOption functions.
-func NewConnectionOptions(opts ...ConnectionOption) *ConnectionOptions {
-	options := &ConnectionOptions{}
+// ConnectionOptionErros is an error that can encapsulate one or more underlying ErrInvalidOptions errors.
+type ConnectionOptionErrors []error
 
-	for _, opt := range opts {
-		opt(options)
+func (errs ConnectionOptionErrors) Error() string {
+	msgs := []string{}
+	for _, err := range errs {
+		msgs = append(msgs, err.Error())
 	}
 
-	return options
+	return strings.Join(msgs, ",")
+}
+
+// NewConnectionOptions creates a ConnectionOptions object from a collection of ConnectionOption functions.
+func NewConnectionOptions(opts ...ConnectionOption) (*ConnectionOptions, error) {
+	options := &ConnectionOptions{}
+
+	errs := ConnectionOptionErrors{}
+
+	for _, opt := range opts {
+		if err := opt(options); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) != 0 {
+		return nil, errs
+	}
+
+	return options, nil
 }

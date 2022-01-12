@@ -53,7 +53,10 @@ type authorizer struct {
 
 // New returns a new REST authorizer with the specified options.
 func New(opts ...client.ConnectionOption) (AuthorizerClient, error) {
-	options := client.NewConnectionOptions(opts...)
+	options, err := client.NewConnectionOptions(opts...)
+	if err != nil {
+		return nil, err
+	}
 
 	tlsConf, err := tlsconf.TLSConfig(options.Insecure)
 	if err != nil {
@@ -142,16 +145,21 @@ func (a *authorizer) postAPIRequest(
 	return io.ReadAll(resp.Body)
 }
 
-func (a *authorizer) serverAddress() string {
-	if a.options.Address != "" {
-		return a.options.Address
+func (a *authorizer) baseURL() string {
+	if a.options.URL != nil {
+		return a.options.URL.String()
 	}
 
-	return hosted.HostedAuthorizerHostname
+	address := a.options.Address
+	if address == "" {
+		address = hosted.HostedAuthorizerHostname
+	}
+
+	return fmt.Sprintf("https://%s", address)
 }
 
 func (a *authorizer) endpointURL(endpoint string) string {
-	return fmt.Sprintf("https://%s/api/v1/authz/%s", a.serverAddress(), endpoint)
+	return fmt.Sprintf("%s/api/v1/authz/%s", a.baseURL(), endpoint)
 }
 
 func (a *authorizer) postRequest(ctx context.Context, url string, message proto.Message) (*http.Response, error) {
