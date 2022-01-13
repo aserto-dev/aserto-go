@@ -200,6 +200,28 @@ func TestWithCACertPath(t *testing.T) {
 	assert.True(t, inPool, "Aserto cert should be in root CAs")
 }
 
+func TestWithCACertPathAndInsecure(t *testing.T) {
+	tempdir := t.TempDir()
+	caPath := fmt.Sprintf("%s/ca.pem", tempdir)
+
+	file, err := os.OpenFile(caPath, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
+	assert.NoError(t, err, "Failed to create CA file")
+
+	defer file.Close()
+
+	caCert, err := generateCACert(CertSubjectName)
+	assert.NoError(t, err, "Failed to generate test certificate")
+
+	_, err = file.Write(caCert)
+	assert.NoError(t, err, "Failed to save certificate")
+
+	recorder := &dialRecorder{}
+	newConnection(context.TODO(), recorder.DialContext, WithCACertPath(caPath), WithInsecure(true)) // nolint:errcheck
+
+	assert.Nil(t, recorder.tlsConf.RootCAs, "Aserto cert should be nil")
+	assert.True(t, recorder.tlsConf.InsecureSkipVerify)
+}
+
 func generateCACert(subjectName string) ([]byte, error) {
 	priv, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	if err != nil {

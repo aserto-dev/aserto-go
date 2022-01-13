@@ -121,7 +121,7 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOp
 		return nil, errors.Wrap(err, "failed to setup tls configuration")
 	}
 
-	if options.CACertPath != "" {
+	if options.CACertPath != "" && !options.Insecure {
 		caCertBytes, err := os.ReadFile(options.CACertPath)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to read ca cert [%s]", options.CACertPath)
