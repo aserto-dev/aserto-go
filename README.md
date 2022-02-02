@@ -221,7 +221,7 @@ import (
 middleware, err := grpcmw.New(
 	client,
 	middleware.Policy{
-		PolicyID: "<Policy ID>",
+		ID: "<Policy ID>",
 		Decision: "allowed",
 	},
 )
@@ -273,7 +273,7 @@ import (
 mw := httpmw.New(
 	client,
 	middleware.Policy{
-		PolicyID: "<Policy ID>",
+		ID: "<Policy ID>",
 		Decision: "allowed",
 	},
 )
@@ -290,7 +290,7 @@ Attaching the authorization middleware to a `gorilla/mux` server is as simple as
 
 ```go
 router := mux.NewRouter()
-router.Use(mw)
+router.Use(mw.Handler)
 
 router.HandleFunc("/foo", fooHandler).Methods("GET")
 ```
