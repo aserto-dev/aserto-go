@@ -308,7 +308,8 @@ type (
 ```
 
 In addition to the general `WithIdentityMapper`, `WithPolicyMapper`, and `WithResourceMapper`, the HTTP middleware
-provides `WithIdentityFromHeader()` to extract identity information from HTTP headers.
+provides `WithIdentityFromHeader()` to extract identity information from HTTP headers, and `WithNoResourceContext()` to
+omit a resource context from authorization calls.
 
 #### Default Mappers
 
@@ -320,7 +321,9 @@ The default behavior of the HTTP middleware is:
   the route contains path parameters (e.g. `"api/products/{id}"`), the surrounding braces are replaced with a
   double-underscore prefix. For example, with policy root `"myApp"`, a request to `GET api/products/{id}` gets the
   policy path `myApp.GET.api.products.__id`.
-* No Resource Context is included in authorization calls by default.
+* Any path parameters defined using [`gorilla/mux`](https://github.com/gorilla/mux) are included in the resource
+  context. For example, if the route is defined as `"api/products/{id}"` and the incoming request URL path is
+  `"api/products/123"` then the resource context will be `{"id": "123"}`.
 
 
 ## Other Aserto Services

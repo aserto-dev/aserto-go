@@ -72,7 +72,7 @@ func New(client AuthorizerClient, policy Policy) *Middleware {
 		client:         client,
 		Identity:       (&IdentityBuilder{}).FromHeader("Authorization"),
 		policy:         *internal.DefaultPolicyContext(policy),
-		resourceMapper: noResourceMapper,
+		resourceMapper: gorillaResourceMapper,
 		policyMapper:   policyMapper,
 	}
 }
@@ -130,6 +130,16 @@ func (m *Middleware) WithPolicyPathMapper(mapper StringMapper) *Middleware {
 	return m
 }
 
+// WithNoResourceContext causes the middleware to include no resource context in authorization request instead
+// of the default behavior that sends all URL path parameters.
+func (m *Middleware) WithNoResourceContext() *Middleware {
+	m.resourceMapper = func(*http.Request) *structpb.Struct {
+		return nil
+	}
+
+	return m
+}
+
 // WithResourceMapper sets a custom resource mapper, a function that takes an incoming request
 // and returns the resource object to include with the authorization request as a `structpb.Struct`.
 func (m *Middleware) WithResourceMapper(mapper StructMapper) *Middleware {
@@ -137,9 +147,18 @@ func (m *Middleware) WithResourceMapper(mapper StructMapper) *Middleware {
 	return m
 }
 
-func noResourceMapper(*http.Request) *structpb.Struct {
-	resource, _ := structpb.NewStruct(nil)
-	return resource
+func gorillaResourceMapper(r *http.Request) *structpb.Struct {
+	vars := map[string]interface{}{}
+	for k, v := range mux.Vars(r) {
+		vars[k] = v
+	}
+
+	res, err := structpb.NewStruct(vars)
+	if err != nil {
+		return nil
+	}
+
+	return res
 }
 
 func urlPolicyPathMapper(prefix string) StringMapper {

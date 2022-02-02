@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/aserto-dev/aserto-go/authorizer/grpc"
 	"github.com/aserto-dev/aserto-go/client"
@@ -41,14 +40,6 @@ func main() {
 		}
 	})
 	mw.WithPolicyFromURL("example")
-	mw.WithResourceMapper(func(*http.Request) *structpb.Struct {
-		resource, err := structpb.NewStruct(map[string]interface{}{"asset": "secret"})
-		if err != nil {
-			log.Print("Error creating resource:", err)
-			return nil
-		}
-		return resource
-	})
 
 	router := mux.NewRouter()
 	router.HandleFunc("/api/{asset}", Handler).Methods("GET", "POST", "DELETE")
