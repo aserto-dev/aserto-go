@@ -1,17 +1,17 @@
 /*
-Package http provides authorization middleware for HTTP servers built on top of net/http.
+Package std provides authorization middleware for HTTP servers built on top of the standard net/http.
 
 The middleware intercepts incoming requests and calls the Aserto authorizer service to determine if access should
 be allowed or denied.
 */
-package http
+package std
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/aserto-dev/aserto-go/middleware"
+	httpmw "github.com/aserto-dev/aserto-go/middleware/http"
 	"github.com/aserto-dev/aserto-go/middleware/internal"
 	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
@@ -39,7 +39,7 @@ The values for these parameters can be set globally or extracted dynamically fro
 */
 type Middleware struct {
 	// Identity determines the caller identity used in authorization calls.
-	Identity *IdentityBuilder
+	Identity *httpmw.IdentityBuilder
 
 	client         AuthorizerClient
 	policy         api.PolicyContext
@@ -48,11 +48,11 @@ type Middleware struct {
 }
 
 type (
-	// StringMapper functions are used to extract string values from incoming messages.
+	// StringMapper functions are used to extract string values from incoming requests.
 	// They are used to define policy mappers.
 	StringMapper func(*http.Request) string
 
-	// StructMapper functions are used to extract structured data from incoming message.
+	// StructMapper functions are used to extract structured data from incoming requests.
 	// The optional resource mapper is a StructMapper.
 	StructMapper func(*http.Request) *structpb.Struct
 )
@@ -70,9 +70,9 @@ func New(client AuthorizerClient, policy Policy) *Middleware {
 
 	return &Middleware{
 		client:         client,
-		Identity:       (&IdentityBuilder{}).FromHeader("Authorization"),
+		Identity:       (&httpmw.IdentityBuilder{}).FromHeader("Authorization"),
 		policy:         *internal.DefaultPolicyContext(policy),
-		resourceMapper: gorillaResourceMapper,
+		resourceMapper: defaultResourceMapper,
 		policyMapper:   policyMapper,
 	}
 }
@@ -85,7 +85,7 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 		}
 
 		isRequest := authorizer.IsRequest{
-			IdentityContext: m.Identity.build(r),
+			IdentityContext: m.Identity.Build(r),
 			PolicyContext:   &m.policy,
 			ResourceContext: m.resourceMapper(r),
 		}
@@ -97,7 +97,7 @@ func (m *Middleware) Handler(next http.Handler) http.Handler {
 			if resp.Decisions[0].Is {
 				next.ServeHTTP(w, r)
 			} else {
-				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+				http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			}
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -147,7 +147,7 @@ func (m *Middleware) WithResourceMapper(mapper StructMapper) *Middleware {
 	return m
 }
 
-func gorillaResourceMapper(r *http.Request) *structpb.Struct {
+func defaultResourceMapper(r *http.Request) *structpb.Struct {
 	vars := map[string]interface{}{}
 	for k, v := range mux.Vars(r) {
 		vars[k] = v
@@ -163,34 +163,37 @@ func gorillaResourceMapper(r *http.Request) *structpb.Struct {
 
 func urlPolicyPathMapper(prefix string) StringMapper {
 	return func(r *http.Request) string {
-		pathVars := mux.Vars(r)
-		if len(pathVars) > 0 {
-			return gorillaPathMapper(prefix, r)
+		policyPath := []string{r.Method}
+
+		segments := getPathSegments(r)
+
+		if len(mux.Vars(r)) > 0 {
+			for i, segment := range segments {
+				if strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}") {
+					segments[i] = "__" + segment[1:len(segment)-1]
+				}
+			}
+		}
+		policyPath = append(policyPath, segments...)
+
+		if prefix != "" {
+			policyPath = append([]string{strings.Trim(prefix, ".")}, policyPath...)
 		}
 
-		policyRoot := prefix
-		if policyRoot != "" && !strings.HasSuffix(policyRoot, ".") {
-			policyRoot += "."
-		}
-
-		return fmt.Sprintf("%s%s.%s", policyRoot, r.Method, internal.ToPolicyPath(r.URL.Path))
+		return strings.Join(policyPath, ".")
 	}
 }
 
-func gorillaPathMapper(policyRoot string, r *http.Request) string {
-	route := mux.CurrentRoute(r)
+func getPathSegments(r *http.Request) []string {
+	path := r.URL.Path
 
-	template, err := route.GetPathTemplate()
-	if err != nil {
-		return ""
-	}
-
-	path := strings.Split(strings.Trim(template, "/"), "/")
-	for i, segment := range path {
-		if strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}") {
-			path[i] = fmt.Sprintf("__%s", segment[1:len(segment)-1])
+	if len(mux.Vars(r)) > 0 {
+		var err error
+		path, err = mux.CurrentRoute(r).GetPathTemplate()
+		if err != nil {
+			path = ""
 		}
 	}
 
-	return fmt.Sprintf("%s.%s.%s", policyRoot, r.Method, strings.Join(path, "."))
+	return strings.Split(strings.Trim(path, "/"), "/")
 }

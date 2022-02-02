@@ -120,7 +120,8 @@ func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 	return b
 }
 
-func (b *IdentityBuilder) build(r *http.Request) *api.IdentityContext {
+// Build constructs an IdentityContext that can be used in authorization requests.
+func (b *IdentityBuilder) Build(r *http.Request) *api.IdentityContext {
 	if b.mapper != nil {
 		b.mapper(r, &b.identity)
 	}

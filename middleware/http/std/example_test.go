@@ -1,4 +1,4 @@
-package http_test
+package std_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/aserto-dev/aserto-go/authorizer/grpc"
 	"github.com/aserto-dev/aserto-go/client"
-	mw "github.com/aserto-dev/aserto-go/middleware/http"
+	mw "github.com/aserto-dev/aserto-go/middleware/http/std"
 )
 
 func Hello(w http.ResponseWriter, r *http.Request) {

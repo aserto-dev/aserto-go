@@ -261,16 +261,25 @@ The default behavior of the gRPC middleware is:
 
 ### HTTP Middleware
 
-The HTTP middleware is available in the sub-package `middleware/http`.
-It implements the standard `net/http` middleware signature (`func (http.Handler) http.Handler`) in its `.Handler` method.
+The HTTP middleware are available under the sub-package `middleware/http`.
+
+Several flavors are implemented:
+
+* Standard `net/http` middleware is implemented in `middleware/http/std`.
+* [Gin](https://github.com/gin-gonic/gin) middleare is implemented in `middleware/http/gin`.
+
+All middleware are constructed and configured in a similar way. They differ in the signature of their `Handler()`
+function, which is used to attach them to HTTP routes, and in the signatures of their mapper functions.
+
+#### net/http Middleware
 
 ```go
 import (
 	"github.com/aserto-dev/aserto-go/middleware"
-	httpmw "github.com/aserto-dev/aserto-go/middleware/http"
+	"github.com/aserto-dev/aserto-go/middleware/http/std"
 )
 ...
-mw := httpmw.New(
+mw := std.New(
 	client,
 	middleware.Policy{
 		ID: "<Policy ID>",
@@ -282,11 +291,11 @@ mw := httpmw.New(
 Adding the created authorization middleware to a basic `net/http` server may look something like this:
 
 ```go
-http.Handle("/foo", authz.Handler(fooHandler))
+http.Handle("/foo", mw.Handler(fooHandler))
 ```
 
 The popular [`gorilla/mux`](https://github.com/gorilla/mux) package provides a powerful and flexible HTTP router.
-Attaching the authorization middleware to a `gorilla/mux` server is as simple as:
+Attaching the standard authorization middleware to a `gorilla/mux` server is as simple as:
 
 ```go
 router := mux.NewRouter()
@@ -325,6 +334,20 @@ The default behavior of the HTTP middleware is:
   context. For example, if the route is defined as `"api/products/{id}"` and the incoming request URL path is
   `"api/products/123"` then the resource context will be `{"id": "123"}`.
 
+
+#### Gin Middleware
+
+The gin middleware looks and behaves just like the net/http middleware with the following differnces:
+
+* Its Handler function is a `gin.HandlerFunc` which can be used with
+[`IRoutes.Use(...HandlerFunc)`](https://pkg.go.dev/github.com/gin-gonic/gin#IRoutes).
+* Its mappers take `*gin.Context` instead of `*http.Request`:
+  ```go
+	type (
+		StringMapper func(*gin.Context) string
+		StructMapper func(*gin.Context) *structpb.Struct
+	)
+  ```
 
 ## Other Aserto Services
 

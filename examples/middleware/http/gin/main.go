@@ -6,12 +6,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	"github.com/aserto-dev/aserto-go/authorizer/grpc"
 	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/middleware"
-	"github.com/aserto-dev/aserto-go/middleware/http/std"
+	"github.com/aserto-dev/aserto-go/middleware/http/ginz"
+	"github.com/gin-gonic/gin"
 )
 
 const port = 8080
@@ -27,7 +26,7 @@ func main() {
 		log.Fatalln("Failed to create authorizer client:", err)
 	}
 
-	mw := std.New(
+	mw := ginz.New(
 		authClient,
 		middleware.Policy{
 			ID:       "local",
@@ -41,25 +40,15 @@ func main() {
 	})
 	mw.WithPolicyFromURL("example")
 
-	router := mux.NewRouter()
-	router.HandleFunc("/api/{asset}", Handler).Methods("GET", "POST", "DELETE")
-
+	router := gin.Default()
 	router.Use(mw.Handler)
-	start(router)
+	router.GET("/api/:asset", Handler)
+	router.POST("/api/:asset", Handler)
+	router.DELETE("/api/:asset", Handler)
+
+	router.Run(fmt.Sprintf(":%d", port))
 }
 
-func Handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-	w.Write([]byte(`"Permission granted"`))
-}
-
-func start(h http.Handler) {
-	addr := fmt.Sprintf("0.0.0.0:%d", port)
-	fmt.Println("Staring server on", addr)
-
-	srv := http.Server{
-		Handler: h,
-		Addr:    addr,
-	}
-	log.Fatal(srv.ListenAndServe())
+func Handler(c *gin.Context) {
+	c.JSON(http.StatusOK, "Permission granted")
 }
