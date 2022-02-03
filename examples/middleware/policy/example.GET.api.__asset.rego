@@ -5,7 +5,7 @@ import future.keywords.in
 default allowed = false
 
 allowed {
-    roles := {"user", "editor"}
+    roles := {"viewer", "editor"}
 
     some x in roles
     input.user.attributes.roles[_] == x

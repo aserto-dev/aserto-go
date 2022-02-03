@@ -1,6 +1,8 @@
-package example.GET.api.__asset
+package example.POST.api.__asset
 
 import future.keywords.in
+
+default allowed = false
 
 allowed {
     roles := {"editor", "admin"}
