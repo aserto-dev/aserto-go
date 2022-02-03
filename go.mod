@@ -3,9 +3,9 @@ module github.com/aserto-dev/aserto-go
 go 1.17
 
 require (
-	github.com/aserto-dev/go-grpc v0.7.0
-	github.com/aserto-dev/go-grpc-authz v0.7.0
-	github.com/aserto-dev/mage-loot v0.7.0
+	github.com/aserto-dev/go-grpc v0.8.0
+	github.com/aserto-dev/go-grpc-authz v0.8.0
+	github.com/aserto-dev/mage-loot v0.8.0
 	github.com/gorilla/mux v1.8.0
 	github.com/lestrrat-go/jwx v1.2.10
 	github.com/magefile/mage v1.12.1
@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	github.com/aserto-dev/clui v0.7.0 // indirect
+	github.com/aserto-dev/clui v0.8.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
 	github.com/fatih/color v1.13.0 // indirect
