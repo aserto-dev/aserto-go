@@ -5,7 +5,10 @@ import future.keywords.in
 default allowed = false
 
 allowed {
-    roles := {"editor", "admin"}
-    some x in roles
-    input.user.attributes.roles[_] == x
+    input.user.attributes.roles[_] == "editor"
+    input.resource.asset != "secret"
+}
+
+allowed {
+    input.user.attributes.roles[_] == "admin"
 }
