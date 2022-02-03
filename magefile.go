@@ -15,7 +15,7 @@ import (
 	"github.com/aserto-dev/mage-loot/deps"
 )
 
-const asertoCLI = "asertx"
+const asertoCLI = "aserto"
 
 // Lint runs linting for the entire project.
 func Lint() error {
@@ -31,6 +31,7 @@ func Deps() {
 	deps.GetAllDeps()
 }
 
+// SetupExamples starts the aserto one-box with a sample policy used by middleware examples.
 func SetupExamples() error {
 	exPath, err := examplesPath()
 	if err != nil {
@@ -56,6 +57,12 @@ func SetupExamples() error {
 	return nil
 }
 
+// TeardownExamples stops the aserto one-box environment started with SetupExamples.
+func TeardownExamples() error {
+	return runCLI("developer", "stop")
+}
+
+// ListExamples lists examples that can be run with the aserto one-box.
 func ListExamples() error {
 	exPath, err := examplesPath()
 	if err != nil {
@@ -76,6 +83,9 @@ func ListExamples() error {
 	return nil
 }
 
+// Example prints the command to start the specified example.
+// You can run the example using $(mage example <name>).
+// For example: $(mage example gin)
 func Example(name string) error {
 	exPath, err := examplesPath()
 	if err != nil {
@@ -110,16 +120,16 @@ func oneboxInstalled() (bool, error) {
 }
 
 func installOnebox() error {
-	return runCLI("developer", "install")
+	return runCLI("developer", "install", "--trust-cert")
 }
 
 func startOnebox(policyPath string) error {
-	fmt.Println("Starting aserto onebox with policy from", policyPath)
+	fmt.Println("\nStarting aserto onebox with policy from", policyPath)
 	return runCLI("developer", "start", "local", "--src-path", policyPath)
 }
 
 func loadExampleUsers(usersPath string) error {
-	fmt.Println("Loading sample users...")
+	fmt.Println("\nLoading sample users...")
 	return runCLI(
 		"directory", "load-users",
 		"--provider", "json", "--file", usersPath, "--incl-user-ext",
