@@ -82,6 +82,7 @@ func (m *Middleware) Handler(c *gin.Context) {
 		PolicyContext:   &m.policy,
 		ResourceContext: m.resourceMapper(c),
 	}
+
 	resp, err := m.client.Is(
 		c,
 		&isRequest,
@@ -93,7 +94,7 @@ func (m *Middleware) Handler(c *gin.Context) {
 			c.AbortWithStatus(http.StatusForbidden)
 		}
 	} else {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		c.AbortWithError(http.StatusInternalServerError, err) // nolint:errcheck
 	}
 }
 
@@ -166,6 +167,7 @@ func urlPolicyPathMapper(prefix string) StringMapper {
 				}
 			}
 		}
+
 		policyPath = append(policyPath, segments...)
 
 		if prefix != "" {

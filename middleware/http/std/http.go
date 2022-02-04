@@ -174,6 +174,7 @@ func urlPolicyPathMapper(prefix string) StringMapper {
 				}
 			}
 		}
+
 		policyPath = append(policyPath, segments...)
 
 		if prefix != "" {
@@ -189,6 +190,7 @@ func getPathSegments(r *http.Request) []string {
 
 	if len(mux.Vars(r)) > 0 {
 		var err error
+
 		path, err = mux.CurrentRoute(r).GetPathTemplate()
 		if err != nil {
 			path = ""
