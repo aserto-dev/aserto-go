@@ -64,7 +64,7 @@ func TestAuthorizer(t *testing.T) {
 				Options: test.Options{
 					Reject: true,
 				},
-				expectedStatusCode: http.StatusUnauthorized,
+				expectedStatusCode: http.StatusForbidden,
 			},
 		),
 		NewTest(
