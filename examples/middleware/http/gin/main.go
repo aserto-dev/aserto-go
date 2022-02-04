@@ -20,7 +20,6 @@ func main() {
 	authClient, err := grpc.New(
 		ctx,
 		client.WithAddr("localhost:8282"),
-		client.WithInsecure(true),
 	)
 	if err != nil {
 		log.Fatalln("Failed to create authorizer client:", err)
