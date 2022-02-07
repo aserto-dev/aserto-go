@@ -1,0 +1,107 @@
+[
+{
+  "id": "200b5979-a7c1-4059-86d0-8c39f6fe88b4",
+  "enabled": true,
+  "display_name": "Karin Lamb",
+  "email": "karinl@acmecorp.com",
+  "picture": "https://github.com/aserto-demo/contoso-ad-sample/raw/main/UserImages/Karin%20Lamb.jpg",
+  "identities": {
+    "CiQwMTFhODhiYy03ZGY5LTRkOTItYmExZi0yZmYzMTllMTAxZTESBWxvY2Fs": {
+      "kind": "IDENTITY_KIND_PID",
+      "provider": "local",
+      "verified": true
+    },
+    "karinl@acmecorp.com": {
+      "kind": "IDENTITY_KIND_EMAIL",
+      "provider": "local",
+      "verified": true
+    }
+  },
+  "attributes": {
+    "properties": {
+      "department": "CRM Strategy",
+      "manager": "2cfdb538-a03d-44b1-a0f2-b7ef32b713a7",
+      "phone": "+1-20-5555-9834",
+      "title": "CRM Consultant"
+    },
+    "roles": [
+      "acmecorp",
+      "crmstrategy",
+      "user",
+      "viewer"
+    ],
+    "permissions": []
+  },
+  "applications": {}
+},
+{
+  "id": "a02c1087-455f-4a79-a68f-782f0998befb",
+  "enabled": true,
+  "display_name": "Diane Tibbot",
+  "email": "dianet@acmecorp.com",
+  "picture": "https://github.com/aserto-demo/contoso-ad-sample/raw/main/UserImages/Diane%20Tibbot.jpg",
+  "identities": {
+    "CiRmMDRmMTM2Yi1kZjkyLTQ2YmYtYTE2MS1mMjk5MGE4MjM2OTQSBWxvY2Fs": {
+      "kind": "IDENTITY_KIND_PID",
+      "provider": "local",
+      "verified": true
+    },
+    "dianet@acmecorp.com": {
+      "kind": "IDENTITY_KIND_EMAIL",
+      "provider": "local",
+      "verified": true
+    }
+  },
+  "attributes": {
+    "properties": {
+      "department": "Operations",
+      "manager": "7846c22f-d3d8-4e02-8b62-d055d0284783",
+      "phone": "+1-206-555-9327",
+      "title": "CFO of Professional Services"
+    },
+    "roles": [
+      "acmecorp",
+      "editor",
+      "operations",
+      "user"
+    ],
+    "permissions": []
+  },
+  "applications": {}
+},
+{
+  "id": "d64b8476-3c5f-4caf-af6f-9a0f1c51d19f",
+  "enabled": true,
+  "display_name": "Kris Johnsen",
+  "email": "krisj@acmecorp.com",
+  "picture": "https://github.com/aserto-demo/contoso-ad-sample/raw/main/UserImages/Kris%20Johnsen.jpg",
+  "identities": {
+    "CiRkNjRiODQ3Ni0zYzVmLTRjYWYtYWY2Zi05YTBmMWM1MWQxOWYSBWxvY2Fs": {
+      "kind": "IDENTITY_KIND_PID",
+      "provider": "local",
+      "verified": true
+    },
+    "krisj@acmecorp.com": {
+      "kind": "IDENTITY_KIND_EMAIL",
+      "provider": "local",
+      "verified": true
+    }
+  },
+  "attributes": {
+    "properties": {
+      "department": "Operations",
+      "manager": "a528dc1d-0042-484d-81cb-dc58c95d8147",
+      "phone": "+1-206-555-9001",
+      "title": "IT Manager"
+    },
+    "roles": [
+      "acmecorp",
+      "admin",
+      "operations",
+      "user"
+    ],
+    "permissions": []
+  },
+  "applications": {}
+}
+]
