@@ -39,7 +39,7 @@ The snippet below creates an authorizer client that talks to Aserto's hosted aut
 ```go
 import (
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev-aserto-go/authorizer/grpc"
+	"github.com/aserto-dev/aserto-go/authorizer/grpc"
 )
 ...
 authorizer, err := grpc.New(
