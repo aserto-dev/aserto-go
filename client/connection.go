@@ -83,6 +83,7 @@ type dialer func(
 	tlsConf *tls.Config,
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
+	options []grpc.DialOption,
 ) (grpc.ClientConnInterface, error)
 
 // dialContext is the default dialer that calls grpc.DialContext to establish a connection.
@@ -92,16 +93,24 @@ func dialContext(
 	tlsConf *tls.Config,
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
+	options []grpc.DialOption,
 ) (grpc.ClientConnInterface, error) {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(credentials.NewTLS(tlsConf)),
 		grpc.WithBlock(),
-		grpc.WithUnaryInterceptor(connection.unary),
-		grpc.WithStreamInterceptor(connection.stream),
 	}
 	if callerCreds != nil {
 		dialOptions = append(dialOptions, grpc.WithPerRPCCredentials(callerCreds))
 	}
+
+	if connection.TenantID != "" {
+		dialOptions = append(dialOptions,
+			grpc.WithChainUnaryInterceptor(connection.unary),
+			grpc.WithChainStreamInterceptor(connection.stream),
+		)
+	}
+
+	dialOptions = append(dialOptions, options...)
 
 	return grpc.DialContext(
 		ctx,
@@ -142,12 +151,18 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOp
 		defer cancel()
 	}
 
+	dialOptions := []grpc.DialOption{
+		grpc.WithChainStreamInterceptor(options.StreamClientInterceptors...),
+		grpc.WithChainUnaryInterceptor(options.UnaryClientInterceptors...),
+	}
+
 	conn, err := dialContext(
 		ctx,
 		serverAddress(options),
 		tlsConf,
 		options.Creds,
 		connection,
+		dialOptions,
 	)
 
 	if err != nil {

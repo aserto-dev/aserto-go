@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"strings"
 )
 
 // TokenAuth bearer token based authentication.
@@ -12,6 +13,13 @@ type TokenAuth struct {
 }
 
 func NewTokenAuth(token string) *TokenAuth {
+	pieces := strings.Split(token, " ")
+	if len(pieces) == 1 {
+		return &TokenAuth{
+			token: Bearer + " " + token,
+		}
+	}
+
 	return &TokenAuth{
 		token: token,
 	}
@@ -19,7 +27,7 @@ func NewTokenAuth(token string) *TokenAuth {
 
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, in ...string) (map[string]string, error) {
 	return map[string]string{
-		Authorization: Bearer + " " + t.token,
+		Authorization: t.token,
 	}, nil
 }
 
