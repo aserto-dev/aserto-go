@@ -5,8 +5,9 @@ import (
 
 	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
+	"github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"
 	"github.com/aserto-dev/go-grpc/aserto/common/info/v1"
-	"github.com/aserto-dev/go-grpc/aserto/tenant/policy/v1"
+	"google.golang.org/grpc"
 
 	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 
@@ -45,4 +46,9 @@ func New(ctx context.Context, opts ...client.ConnectionOption) (*Client, error) 
 		Policy:     policy.NewPolicyClient(connection.Conn),
 		Info:       info.NewInfoClient(connection.Conn),
 	}, err
+}
+
+// Connection returns the underlying grpc connection.
+func (c *Client) Connection() grpc.ClientConnInterface {
+	return c.conn.Conn
 }

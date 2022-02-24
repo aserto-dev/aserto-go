@@ -6,6 +6,7 @@ import (
 
 	"github.com/aserto-dev/aserto-go/client/internal"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
 
@@ -98,6 +99,22 @@ func WithTenantID(tenantID string) ConnectionOption {
 	}
 }
 
+// WithChainUnaryInterceptor adds a unary interceptor to grpc dial options.
+func WithChainUnaryInterceptor(mw ...grpc.UnaryClientInterceptor) ConnectionOption {
+	return func(options *ConnectionOptions) error {
+		options.UnaryClientInterceptors = append(options.UnaryClientInterceptors, mw...)
+		return nil
+	}
+}
+
+// WithChainStreamInterceptor adds a stream interceptor to grpc dial options.
+func WithChainStreamInterceptor(mw ...grpc.StreamClientInterceptor) ConnectionOption {
+	return func(options *ConnectionOptions) error {
+		options.StreamClientInterceptors = append(options.StreamClientInterceptors, mw...)
+		return nil
+	}
+}
+
 // ConnectionOptions holds settings used to establish a connection to the authorizer service.
 type ConnectionOptions struct {
 	// The server's host name and port separated by a colon ("hostname:port").
@@ -124,6 +141,12 @@ type ConnectionOptions struct {
 
 	// If true, skip TLS certificate verification.
 	Insecure bool
+
+	// UnaryClientInterceptors passed to the grpc client.
+	UnaryClientInterceptors []grpc.UnaryClientInterceptor
+
+	// StreamClientInterceptors passed to the grpc client.
+	StreamClientInterceptors []grpc.StreamClientInterceptor
 }
 
 // ConnecionOption functions are used to configure ConnectionOptions instances.
@@ -143,7 +166,10 @@ func (errs ConnectionOptionErrors) Error() string {
 
 // NewConnectionOptions creates a ConnectionOptions object from a collection of ConnectionOption functions.
 func NewConnectionOptions(opts ...ConnectionOption) (*ConnectionOptions, error) {
-	options := &ConnectionOptions{}
+	options := &ConnectionOptions{
+		UnaryClientInterceptors:  []grpc.UnaryClientInterceptor{},
+		StreamClientInterceptors: []grpc.StreamClientInterceptor{},
+	}
 
 	errs := ConnectionOptionErrors{}
 

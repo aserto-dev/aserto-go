@@ -39,6 +39,7 @@ func (d *dialRecorder) DialContext(
 	tlsConf *tls.Config,
 	callerCreds credentials.PerRPCCredentials,
 	connection *Connection,
+	options []grpc.DialOption,
 ) (grpc.ClientConnInterface, error) {
 	d.context = ctx
 	d.address = address
@@ -88,6 +89,18 @@ func TestWithInsecure(t *testing.T) {
 func TestWithTokenAuth(t *testing.T) {
 	recorder := &dialRecorder{}
 	newConnection(context.TODO(), recorder.DialContext, WithTokenAuth("<token>")) // nolint:errcheck
+
+	md, err := recorder.callerCreds.GetRequestMetadata(context.TODO())
+	assert.NoError(t, err)
+
+	token, ok := md["authorization"]
+	assert.True(t, ok)
+	assert.Equal(t, "bearer <token>", token)
+}
+
+func TestWithBearerTokenAuth(t *testing.T) {
+	recorder := &dialRecorder{}
+	newConnection(context.TODO(), recorder.DialContext, WithTokenAuth("bearer <token>")) // nolint:errcheck
 
 	md, err := recorder.callerCreds.GetRequestMetadata(context.TODO())
 	assert.NoError(t, err)
