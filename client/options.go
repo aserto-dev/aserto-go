@@ -115,6 +115,14 @@ func WithChainStreamInterceptor(mw ...grpc.StreamClientInterceptor) ConnectionOp
 	}
 }
 
+// WithDialOptions add custom dial options to the grpc connection.
+func WithDialOptions(opts ...grpc.DialOption) ConnectionOption {
+	return func(options *ConnectionOptions) error {
+		options.DialOptions = append(options.DialOptions, opts...)
+		return nil
+	}
+}
+
 // ConnectionOptions holds settings used to establish a connection to the authorizer service.
 type ConnectionOptions struct {
 	// The server's host name and port separated by a colon ("hostname:port").
@@ -147,6 +155,9 @@ type ConnectionOptions struct {
 
 	// StreamClientInterceptors passed to the grpc client.
 	StreamClientInterceptors []grpc.StreamClientInterceptor
+
+	// DialOptions passed to the grpc client.
+	DialOptions []grpc.DialOption
 }
 
 // ConnecionOption functions are used to configure ConnectionOptions instances.

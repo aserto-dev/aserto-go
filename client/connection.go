@@ -156,6 +156,8 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOp
 		grpc.WithChainUnaryInterceptor(options.UnaryClientInterceptors...),
 	}
 
+	dialOptions = append(dialOptions, options.DialOptions...)
+
 	conn, err := dialContext(
 		ctx,
 		serverAddress(options),
