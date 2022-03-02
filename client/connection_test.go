@@ -22,6 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -31,6 +32,7 @@ type dialRecorder struct {
 	tlsConf     *tls.Config
 	callerCreds credentials.PerRPCCredentials
 	connection  *Connection
+	dialOptions []grpc.DialOption
 }
 
 func (d *dialRecorder) DialContext(
@@ -46,6 +48,7 @@ func (d *dialRecorder) DialContext(
 	d.tlsConf = tlsConf
 	d.callerCreds = callerCreds
 	d.connection = connection
+	d.dialOptions = options
 
 	return &grpc.ClientConn{}, nil
 }
@@ -233,6 +236,14 @@ func TestWithCACertPathAndInsecure(t *testing.T) {
 
 	assert.Nil(t, recorder.tlsConf.RootCAs, "Aserto cert should be nil")
 	assert.True(t, recorder.tlsConf.InsecureSkipVerify)
+}
+
+func TestWithDialOptions(t *testing.T) {
+	recorder := &dialRecorder{}
+	creds := grpc.WithTransportCredentials(insecure.NewCredentials())
+
+	newConnection(context.TODO(), recorder.DialContext, WithDialOptions(creds)) // nolint:errcheck
+	assert.Contains(t, recorder.dialOptions, creds)
 }
 
 func generateCACert(subjectName string) ([]byte, error) {
