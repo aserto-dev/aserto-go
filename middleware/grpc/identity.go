@@ -14,8 +14,9 @@ type IdentityMapper func(context.Context, interface{}, middleware.Identity)
 
 // IdentityBuilder is used to configure what information about caller identity is sent in authorization calls.
 type IdentityBuilder struct {
-	identity internal.Identity
-	mapper   IdentityMapper
+	identityType    api.IdentityType
+	defaultIdentity string
+	mapper          IdentityMapper
 }
 
 // Static values
@@ -27,7 +28,7 @@ type IdentityBuilder struct {
 //
 //  idBuilder.JWT().FromHeader("Authorization")
 func (b *IdentityBuilder) JWT() *IdentityBuilder {
-	b.identity.JWT()
+	b.identityType = api.IdentityType_IDENTITY_TYPE_JWT
 	return b
 }
 
@@ -38,13 +39,15 @@ func (b *IdentityBuilder) JWT() *IdentityBuilder {
 //
 //  idBuilder.Subject().FromContextValue("username")
 func (b *IdentityBuilder) Subject() *IdentityBuilder {
-	b.identity.Subject()
+	b.identityType = api.IdentityType_IDENTITY_TYPE_SUB
 	return b
 }
 
 // Call None() to indicate that requests are unauthenticated.
 func (b *IdentityBuilder) None() *IdentityBuilder {
-	b.identity.None()
+	b.identityType = api.IdentityType_IDENTITY_TYPE_NONE
+	b.defaultIdentity = ""
+
 	return b
 }
 
@@ -52,7 +55,7 @@ func (b *IdentityBuilder) None() *IdentityBuilder {
 // tries to infer whether the specified identity is a JWT or not.
 // Passing an empty string is the same as calling .None() and results in an authorization check for anonymous access.
 func (b *IdentityBuilder) ID(identity string) *IdentityBuilder {
-	b.identity.ID(identity)
+	b.defaultIdentity = identity
 	return b
 }
 
@@ -86,9 +89,11 @@ func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 }
 
 func (b *IdentityBuilder) build(ctx context.Context, req interface{}) *api.IdentityContext {
+	identity := internal.NewIdentity(b.identityType, b.defaultIdentity)
+
 	if b.mapper != nil {
-		b.mapper(ctx, req, &b.identity)
+		b.mapper(ctx, req, identity)
 	}
 
-	return b.identity.Context()
+	return identity.Context()
 }

@@ -16,8 +16,9 @@ type IdentityMapper func(*http.Request, middleware.Identity)
 
 // IdentityBuilder is used to configure what information about caller identity is sent in authorization calls.
 type IdentityBuilder struct {
-	identity internal.Identity
-	mapper   IdentityMapper
+	identityType    api.IdentityType
+	defaultIdentity string
+	mapper          IdentityMapper
 }
 
 // Static values
@@ -29,7 +30,7 @@ type IdentityBuilder struct {
 //
 //  idBuilder.JWT().FromHeader("Authorization")
 func (b *IdentityBuilder) JWT() *IdentityBuilder {
-	b.identity.JWT()
+	b.identityType = api.IdentityType_IDENTITY_TYPE_JWT
 	return b
 }
 
@@ -40,13 +41,15 @@ func (b *IdentityBuilder) JWT() *IdentityBuilder {
 //
 //  idBuilder.Subject().FromContextValue("username")
 func (b *IdentityBuilder) Subject() *IdentityBuilder {
-	b.identity.Subject()
+	b.identityType = api.IdentityType_IDENTITY_TYPE_SUB
 	return b
 }
 
 // Call None() to indicate that requests are unauthenticated.
 func (b *IdentityBuilder) None() *IdentityBuilder {
-	b.identity.None()
+	b.identityType = api.IdentityType_IDENTITY_TYPE_NONE
+	b.defaultIdentity = ""
+
 	return b
 }
 
@@ -54,7 +57,7 @@ func (b *IdentityBuilder) None() *IdentityBuilder {
 // tries to infer whether the specified identity is a JWT or not.
 // Passing an empty string is the same as calling .None() and results in an authorization check for anonymous access.
 func (b *IdentityBuilder) ID(identity string) *IdentityBuilder {
-	b.identity.ID(identity)
+	b.defaultIdentity = identity
 	return b
 }
 
@@ -122,17 +125,19 @@ func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 
 // Build constructs an IdentityContext that can be used in authorization requests.
 func (b *IdentityBuilder) Build(r *http.Request) *api.IdentityContext {
+	identity := internal.NewIdentity(b.identityType, b.defaultIdentity)
+
 	if b.mapper != nil {
-		b.mapper(r, &b.identity)
+		b.mapper(r, identity)
 	}
 
-	return b.identity.Context()
+	return identity.Context()
 }
 
 func (b *IdentityBuilder) fromAuthzHeader(value string) string {
 	// Authorization header is special. Need to remove "Bearer" auth scheme.
 	value = strings.TrimSpace(strings.TrimPrefix(value, "Bearer"))
-	if b.identity.IsSubject() {
+	if b.identityType == api.IdentityType_IDENTITY_TYPE_SUB {
 		// Try to parse subject out of token
 		token, err := jwt.ParseString(value)
 		if err == nil {
