@@ -98,16 +98,11 @@ func dialContext(
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(credentials.NewTLS(tlsConf)),
 		grpc.WithBlock(),
+		grpc.WithChainUnaryInterceptor(connection.unary),
+		grpc.WithChainStreamInterceptor(connection.stream),
 	}
 	if callerCreds != nil {
 		dialOptions = append(dialOptions, grpc.WithPerRPCCredentials(callerCreds))
-	}
-
-	if connection.TenantID != "" {
-		dialOptions = append(dialOptions,
-			grpc.WithChainUnaryInterceptor(connection.unary),
-			grpc.WithChainStreamInterceptor(connection.stream),
-		)
 	}
 
 	dialOptions = append(dialOptions, options...)
