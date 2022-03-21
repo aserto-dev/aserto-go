@@ -9,6 +9,15 @@ type Identity struct {
 	context api.IdentityContext
 }
 
+func NewIdentity(identityType api.IdentityType, identity string) *Identity {
+	return &Identity{
+		context: api.IdentityContext{
+			Type:     identityType,
+			Identity: identity,
+		},
+	}
+}
+
 var _ middleware.Identity = (*Identity)(nil)
 
 func (id *Identity) JWT() middleware.Identity {
