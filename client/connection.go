@@ -13,6 +13,7 @@ import (
 	"context"
 	"crypto/tls"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aserto-dev/aserto-go/client/internal"
@@ -195,6 +196,10 @@ func (c *Connection) stream(
 
 // setTenantContext returns a new context with the provided tenant ID embedded as metadata.
 func setTenantContext(ctx context.Context, tenantID string) context.Context {
+	if strings.TrimSpace(tenantID) == "" {
+		return ctx
+	}
+
 	return metadata.AppendToOutgoingContext(ctx, internal.AsertoTenantID, tenantID)
 }
 
