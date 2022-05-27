@@ -16,7 +16,7 @@ import (
 	provider "github.com/aserto-dev/go-grpc/aserto/tenant/provider/v1"
 	registry "github.com/aserto-dev/go-grpc/aserto/tenant/registry/v1"
 	scc "github.com/aserto-dev/go-grpc/aserto/tenant/scc/v1"
-	v2 "github.com/aserto-dev/go-grpc/tenant/v2"
+	v2 "github.com/aserto-dev/go-grpc/aserto/tenant/v2"
 
 	"github.com/pkg/errors"
 )

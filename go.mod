@@ -3,7 +3,7 @@ module github.com/aserto-dev/aserto-go
 go 1.17
 
 require (
-	github.com/aserto-dev/go-grpc v0.8.21
+	github.com/aserto-dev/go-grpc v0.8.25
 	github.com/aserto-dev/go-grpc-authz v0.8.0
 	github.com/aserto-dev/mage-loot v0.8.8
 	github.com/gin-gonic/gin v1.7.7
