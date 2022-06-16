@@ -58,7 +58,7 @@ func New(opts ...client.ConnectionOption) (AuthorizerClient, error) {
 		return nil, err
 	}
 
-	tlsConf, err := tlsconf.TLSConfig(options.Insecure)
+	tlsConf, err := tlsconf.TLSConfig(options.Insecure, "")
 	if err != nil {
 		return nil, err
 	}

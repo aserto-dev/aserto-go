@@ -12,7 +12,6 @@ package client
 import (
 	"context"
 	"crypto/tls"
-	"os"
 	"strings"
 	"time"
 
@@ -121,20 +120,9 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOp
 		return nil, err
 	}
 
-	tlsConf, err := tlsconf.TLSConfig(options.Insecure)
+	tlsConf, err := tlsconf.TLSConfig(options.Insecure, options.CACertPath)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to setup tls configuration")
-	}
-
-	if options.CACertPath != "" && !options.Insecure {
-		caCertBytes, err := os.ReadFile(options.CACertPath)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read ca cert [%s]", options.CACertPath)
-		}
-
-		if !tlsConf.RootCAs.AppendCertsFromPEM(caCertBytes) {
-			return nil, errors.Wrapf(err, "failed to append client ca cert [%s]", options.CACertPath)
-		}
 	}
 
 	connection := &Connection{TenantID: options.TenantID}
