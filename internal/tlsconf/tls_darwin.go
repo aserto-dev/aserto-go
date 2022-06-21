@@ -3,6 +3,7 @@ package tlsconf
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"os"
 
 	"github.com/pkg/errors"
 )
