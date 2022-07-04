@@ -66,6 +66,9 @@ type Client struct {
 
 	// V2Instance provides methods for for creating and managing policy's instances
 	V2Instance v2.InstanceClient
+
+	// V2Tenant provides methods for for creating and managing tenant instances
+	V2Tenant v2.TenantClient
 }
 
 // New creates a tenant Client with the specified connection options.
@@ -91,6 +94,7 @@ func New(ctx context.Context, opts ...client.ConnectionOption) (*Client, error) 
 		V2Repository:  v2.NewRepositoryClient(conn.Conn),
 		V2Source:      v2.NewSourceClient(conn.Conn),
 		V2Instance:    v2.NewInstanceClient(conn.Conn),
+		V2Tenant:      v2.NewTenantClient(conn.Conn),
 	}, err
 }
 
