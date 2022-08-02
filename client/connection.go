@@ -168,7 +168,7 @@ func (c *Connection) unary(
 	invoker grpc.UnaryInvoker,
 	opts ...grpc.CallOption,
 ) error {
-	return invoker(setTenantContext(ctx, c.TenantID), method, req, reply, cc, opts...)
+	return invoker(SetTenantContext(ctx, c.TenantID), method, req, reply, cc, opts...)
 }
 
 func (c *Connection) stream(
@@ -179,11 +179,11 @@ func (c *Connection) stream(
 	streamer grpc.Streamer,
 	opts ...grpc.CallOption,
 ) (grpc.ClientStream, error) {
-	return streamer(setTenantContext(ctx, c.TenantID), desc, cc, method, opts...)
+	return streamer(SetTenantContext(ctx, c.TenantID), desc, cc, method, opts...)
 }
 
-// setTenantContext returns a new context with the provided tenant ID embedded as metadata.
-func setTenantContext(ctx context.Context, tenantID string) context.Context {
+// SetTenantContext returns a new context with the provided tenant ID embedded as metadata.
+func SetTenantContext(ctx context.Context, tenantID string) context.Context {
 	if strings.TrimSpace(tenantID) == "" {
 		return ctx
 	}
