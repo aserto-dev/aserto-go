@@ -23,22 +23,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Read Configuration
-        uses: hashicorp/vault-action@v2.1.0
+        uses: hashicorp/vault-action@v2.2.0
         id: vault
         with:
           url: ${{ env.VAULT_ADDR }}
           token: ${{ secrets.VAULT_TOKEN }}
           secrets: |
             kv/data/github  "SSH_PRIVATE_KEY"     | SSH_PRIVATE_KEY;
-      - name: Install Vault CLI
-        uses: innovationnorway/setup-vault@v1.0.3
-        with:
-          version: 1.4.2
-      - name: Renew Vault Token
-        env:
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-        run: |
-          vault token renew
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
