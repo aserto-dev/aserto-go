@@ -108,7 +108,12 @@ This call would result in an authorization resource with the following structure
 If the value of "address" is itself a message, all of its fields are included.
 */
 func (m *Middleware) WithResourceFromFields(fields ...string) *Middleware {
-	m.resourceMapper = messageResourceMapper(fields...)
+	m.resourceMapper = messageResourceMapper(map[string][]string{}, fields...)
+	return m
+}
+
+func (m *Middleware) WithResourceFromMessageByPath(fieldsByPath map[string][]string, defaults ...string) *Middleware {
+	m.resourceMapper = messageResourceMapper(fieldsByPath, defaults...)
 	return m
 }
 
@@ -199,9 +204,19 @@ func noResourceMapper(ctx context.Context, req interface{}) *structpb.Struct {
 	return resource
 }
 
-func messageResourceMapper(fields ...string) StructMapper {
+func messageResourceMapper(fieldsByPath map[string][]string, defaults ...string) StructMapper {
 	return func(ctx context.Context, req interface{}) *structpb.Struct {
-		resource, _ := pbutil.Select(req.(protoreflect.ProtoMessage), fields...)
+		var resource *structpb.Struct
+
+		method, _ := grpc.Method(ctx)
+
+		fields, ok := fieldsByPath[method]
+		if !ok || len(fields) == 0 {
+			fields = defaults
+		}
+
+		resource, _ = pbutil.Select(req.(protoreflect.ProtoMessage), fields...)
+
 		return resource
 	}
 }
