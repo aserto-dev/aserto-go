@@ -15,6 +15,7 @@ import (
 	"github.com/aserto-dev/aserto-go/middleware/internal"
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
 	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	"github.com/aserto-dev/go-utils/cerr"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -43,10 +44,10 @@ type Middleware struct {
 	// Identity determines the caller identity used in authorization calls.
 	Identity *IdentityBuilder
 
-	client         AuthorizerClient
-	policy         api.PolicyContext
-	policyMapper   StringMapper
-	resourceMapper StructMapper
+	client          AuthorizerClient
+	policy          api.PolicyContext
+	policyMapper    StringMapper
+	resourceMappers []ResourceMapper
 }
 
 type (
@@ -54,9 +55,8 @@ type (
 	// They are used to define identity and policy mappers.
 	StringMapper func(context.Context, interface{}) string
 
-	// StructMapper functions are used to extract structured data from incoming message.
-	// The optional resource mapper is a StructMapper.
-	StructMapper func(context.Context, interface{}) *structpb.Struct
+	// ResourceMapper functions are used to extract structured data from incoming message.
+	ResourceMapper func(context.Context, interface{}, map[string]interface{})
 )
 
 // New creates middleware for the specified policy.
@@ -71,11 +71,11 @@ func New(client AuthorizerClient, policy Policy) *Middleware {
 	}
 
 	return &Middleware{
-		client:         client,
-		Identity:       (&IdentityBuilder{}).FromMetadata("authorization"),
-		policy:         *internal.DefaultPolicyContext(policy),
-		policyMapper:   policyMapper,
-		resourceMapper: noResourceMapper,
+		client:          client,
+		Identity:        (&IdentityBuilder{}).FromMetadata("authorization"),
+		policy:          *internal.DefaultPolicyContext(policy),
+		policyMapper:    policyMapper,
+		resourceMappers: []ResourceMapper{},
 	}
 }
 
@@ -108,19 +108,19 @@ This call would result in an authorization resource with the following structure
 If the value of "address" is itself a message, all of its fields are included.
 */
 func (m *Middleware) WithResourceFromFields(fields ...string) *Middleware {
-	m.resourceMapper = messageResourceMapper(map[string][]string{}, fields...)
+	m.resourceMappers = append(m.resourceMappers, messageResourceMapper(map[string][]string{}, fields...))
 	return m
 }
 
 func (m *Middleware) WithResourceFromMessageByPath(fieldsByPath map[string][]string, defaults ...string) *Middleware {
-	m.resourceMapper = messageResourceMapper(fieldsByPath, defaults...)
+	m.resourceMappers = append(m.resourceMappers, messageResourceMapper(fieldsByPath, defaults...))
 	return m
 }
 
 // WithResourceMapper takes a custom StructMapper for extracting the authorization resource context from
 // incoming messages.
-func (m *Middleware) WithResourceMapper(mapper StructMapper) *Middleware {
-	m.resourceMapper = mapper
+func (m *Middleware) WithResourceMapper(mapper ResourceMapper) *Middleware {
+	m.resourceMappers = append(m.resourceMappers, mapper)
 	return m
 }
 
@@ -163,12 +163,17 @@ func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 		m.policy.Path = m.policyMapper(ctx, req)
 	}
 
+	resource, err := m.resourceContext(ctx, req)
+	if err != nil {
+		return errors.Wrap(err, "failed to apply resource mapper")
+	}
+
 	resp, err := m.client.Is(
 		ctx,
 		&authz.IsRequest{
 			IdentityContext: m.Identity.build(ctx, req),
 			PolicyContext:   &m.policy,
-			ResourceContext: m.resourceMapper(ctx, req),
+			ResourceContext: resource,
 		},
 	)
 	if err != nil {
@@ -176,14 +181,23 @@ func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 	}
 
 	if len(resp.Decisions) == 0 {
-		return middleware.ErrNoDecision
+		return cerr.ErrInvalidDecision
 	}
 
 	if !resp.Decisions[0].Is {
-		return middleware.ErrUnauthorized
+		return cerr.ErrAuthorizationFailed
 	}
 
 	return nil
+}
+
+func (m *Middleware) resourceContext(ctx context.Context, req interface{}) (*structpb.Struct, error) {
+	res := map[string]interface{}{}
+	for _, mapper := range m.resourceMappers {
+		mapper(ctx, req, res)
+	}
+
+	return structpb.NewStruct(res)
 }
 
 func methodPolicyMapper(policyRoot string) StringMapper {
@@ -199,15 +213,8 @@ func methodPolicyMapper(policyRoot string) StringMapper {
 	}
 }
 
-func noResourceMapper(ctx context.Context, req interface{}) *structpb.Struct {
-	resource, _ := structpb.NewStruct(nil)
-	return resource
-}
-
-func messageResourceMapper(fieldsByPath map[string][]string, defaults ...string) StructMapper {
-	return func(ctx context.Context, req interface{}) *structpb.Struct {
-		var resource *structpb.Struct
-
+func messageResourceMapper(fieldsByPath map[string][]string, defaults ...string) ResourceMapper {
+	return func(ctx context.Context, req interface{}, res map[string]interface{}) {
 		method, _ := grpc.Method(ctx)
 
 		fields, ok := fieldsByPath[method]
@@ -215,8 +222,11 @@ func messageResourceMapper(fieldsByPath map[string][]string, defaults ...string)
 			fields = defaults
 		}
 
-		resource, _ = pbutil.Select(req.(protoreflect.ProtoMessage), fields...)
-
-		return resource
+		if len(fields) > 0 {
+			resource, _ := pbutil.Select(req.(protoreflect.ProtoMessage), fields...)
+			for k, v := range resource.AsMap() {
+				res[k] = v
+			}
+		}
 	}
 }
