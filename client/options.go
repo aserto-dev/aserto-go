@@ -90,10 +90,19 @@ func WithAPIKeyAuth(key string) ConnectionOption {
 	}
 }
 
-// WithTenantID sets the asserto tenant ID.
+// WithTenantID sets the Aserto tenant ID.
 func WithTenantID(tenantID string) ConnectionOption {
 	return func(options *ConnectionOptions) error {
 		options.TenantID = tenantID
+
+		return nil
+	}
+}
+
+// WithSessionID sets the Aserto session ID.
+func WithSessionID(sessionID string) ConnectionOption {
+	return func(options *ConnectionOptions) error {
+		options.SessionID = sessionID
 
 		return nil
 	}
@@ -144,6 +153,9 @@ type ConnectionOptions struct {
 	// The tenant ID of your aserto account.
 	TenantID string
 
+	// Session ID.
+	SessionID string
+
 	// Credentials used to authenticate with the authorizer service. Either API Key or OAuth Token.
 	Creds credentials.PerRPCCredentials
 
@@ -160,10 +172,10 @@ type ConnectionOptions struct {
 	DialOptions []grpc.DialOption
 }
 
-// ConnecionOption functions are used to configure ConnectionOptions instances.
+// ConnectionOption functions are used to configure ConnectionOptions instances.
 type ConnectionOption func(*ConnectionOptions) error
 
-// ConnectionOptionErros is an error that can encapsulate one or more underlying ErrInvalidOptions errors.
+// ConnectionOptionErrors is an error that can encapsulate one or more underlying ErrInvalidOptions errors.
 type ConnectionOptionErrors []error
 
 func (errs ConnectionOptionErrors) Error() string {
