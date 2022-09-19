@@ -241,14 +241,22 @@ type (
 	// StringMapper functions are used to extract string values like identity and policy-path from incoming messages.
 	StringMapper func(context.Context, interface{}) string
 
-	// StructMapper functions are used to extract a resource context structure from incoming messages.
-	StructMapper func(context.Context, interface{}) *structpb.Struct
+	// ResourceMapper functions are used to extract structured data from incoming message.
+	ResourceMapper func(context.Context, interface{}, map[string]interface{})
 )
 ```
 
 In addition to the general `WithIdentityMapper`, `WithPolicyPathMapper`, and `WithResourceMapper`, the gRPC middleware
-provides `WithResourceFromFields(fields ...string)` which selects a set of fields from the incoming message to be
-sent as an authorization resource.
+provides methods to help construct resource contexts from incoming messages.
+
+**`WithResourceFromFields(fields ...string)`** selects a specified set of fields from the incoming message to be
+included in the authorization resource.
+
+**WithResourceFromMessageByPath(fieldsByPath map[string][]string, defaults ...string)** is similar to
+`WithResourceFromFields` but can select different sets  of fields depending on which service method is called.
+
+**WithResourceFromContextValue(ctxKey interface{}, field string)** reads a value from the incoming request context
+and adds it as a field to the resource context.
 
 #### Default Mappers
 

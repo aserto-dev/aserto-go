@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aserto-dev/aserto-go/middleware"
 	grpcmw "github.com/aserto-dev/aserto-go/middleware/grpc"
 	"github.com/aserto-dev/aserto-go/middleware/internal/mock"
 	"github.com/aserto-dev/aserto-go/middleware/internal/test"
+	"github.com/aserto-dev/go-utils/cerr"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )
@@ -59,7 +59,7 @@ func TestAuthorizer(t *testing.T) {
 				Options: test.Options{
 					Reject: true,
 				},
-				expectedErr: middleware.ErrUnauthorized,
+				expectedErr: cerr.ErrAuthorizationFailed,
 			},
 		),
 		NewTest(
