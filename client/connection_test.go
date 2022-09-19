@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aserto-dev/aserto-go/client/internal"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -132,6 +133,7 @@ func TestTokenAndAPIKey(t *testing.T) {
 	assert.Error(t, err)
 }
 
+//nolint: dupl
 func TestWithTenantID(t *testing.T) {
 	recorder := &dialRecorder{}
 	newConnection(context.TODO(), recorder.DialContext, WithTenantID("<tenantid>")) // nolint:errcheck
@@ -179,6 +181,63 @@ func TestWithTenantID(t *testing.T) {
 			tenantID := md.Get("aserto-tenant-id")
 			assert.Equal(t, 1, len(tenantID), "request should contain tenant ID metadata field")
 			assert.Equal(t, "<tenantid>", tenantID[0], "tenant ID metadata should have the expected value")
+
+			assert.Equal(t, "method", method, "'method' parameter should be a passthrough")
+			assert.Equal(t, recorder.connection.Conn, cc)
+
+			return nil, nil
+		},
+	)
+}
+
+//nolint: dupl
+func TestWithSessionID(t *testing.T) {
+	recorder := &dialRecorder{}
+	newConnection(context.TODO(), recorder.DialContext, WithSessionID("<sessionid>")) // nolint:errcheck
+
+	assert.Equal(t, "<sessionid>", recorder.connection.SessionID)
+
+	ctx := context.TODO()
+	recorder.connection.unary( // nolint:errcheck
+		ctx,
+		"method",
+		"request",
+		"reply",
+		recorder.connection.Conn.(*grpc.ClientConn),
+		func(c context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
+			md, ok := metadata.FromOutgoingContext(c)
+			assert.True(t, ok)
+
+			sessionID := md.Get("aserto-session-id")
+			assert.Equal(t, 1, len(sessionID), "request should contain session ID metadata field")
+			assert.Equal(t, "<sessionid>", sessionID[0], "session ID metadata should have the expected value")
+
+			assert.Equal(t, "method", method, "'method' parameter should be a passthrough")
+			assert.Equal(t, "request", req, "'request' parameter should be a passthrough")
+			assert.Equal(t, "reply", reply, "'reply' parameter should be a passthrough")
+			assert.Equal(t, recorder.connection.Conn, cc)
+
+			return nil
+		})
+
+	recorder.connection.stream( // nolint:errcheck
+		ctx,
+		nil,
+		recorder.connection.Conn.(*grpc.ClientConn),
+		"method",
+		func(
+			c context.Context,
+			desc *grpc.StreamDesc,
+			cc *grpc.ClientConn,
+			method string,
+			opts ...grpc.CallOption,
+		) (grpc.ClientStream, error) {
+			md, ok := metadata.FromOutgoingContext(c)
+			assert.True(t, ok)
+
+			sessionID := md.Get(internal.AsertoSessionID)
+			assert.Equal(t, 1, len(sessionID), "request should contain session ID metadata field")
+			assert.Equal(t, "<sessionid>", sessionID[0], "session ID metadata should have the expected value")
 
 			assert.Equal(t, "method", method, "'method' parameter should be a passthrough")
 			assert.Equal(t, recorder.connection.Conn, cc)

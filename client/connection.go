@@ -24,7 +24,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// Connection represents a gRPC connection with an Aserto tenenat ID.
+// Connection represents a gRPC connection with an Aserto tenant ID.
 //
 // The tenant ID is automatically sent to the backend on each request using a ClientInterceptor.
 type Connection struct {
@@ -33,6 +33,9 @@ type Connection struct {
 
 	// TenantID is the ID of the Aserto tenant making the connection.
 	TenantID string
+
+	// SessionID
+	SessionID string
 }
 
 const defaultTimeout time.Duration = time.Duration(5) * time.Second
@@ -125,7 +128,10 @@ func newConnection(ctx context.Context, dialContext dialer, opts ...ConnectionOp
 		return nil, errors.Wrap(err, "failed to setup tls configuration")
 	}
 
-	connection := &Connection{TenantID: options.TenantID}
+	connection := &Connection{
+		TenantID:  options.TenantID,
+		SessionID: options.SessionID,
+	}
 
 	if _, ok := ctx.Deadline(); !ok {
 		// Set the default timeout if the context already have a timeout.
@@ -168,7 +174,7 @@ func (c *Connection) unary(
 	invoker grpc.UnaryInvoker,
 	opts ...grpc.CallOption,
 ) error {
-	return invoker(SetTenantContext(ctx, c.TenantID), method, req, reply, cc, opts...)
+	return invoker(SetTenantContext(SetSessionContext(ctx, c.SessionID), c.TenantID), method, req, reply, cc, opts...)
 }
 
 func (c *Connection) stream(
@@ -179,7 +185,7 @@ func (c *Connection) stream(
 	streamer grpc.Streamer,
 	opts ...grpc.CallOption,
 ) (grpc.ClientStream, error) {
-	return streamer(SetTenantContext(ctx, c.TenantID), desc, cc, method, opts...)
+	return streamer(SetTenantContext(SetSessionContext(ctx, c.SessionID), c.TenantID), desc, cc, method, opts...)
 }
 
 // SetTenantContext returns a new context with the provided tenant ID embedded as metadata.
@@ -189,6 +195,14 @@ func SetTenantContext(ctx context.Context, tenantID string) context.Context {
 	}
 
 	return metadata.AppendToOutgoingContext(ctx, internal.AsertoTenantID, tenantID)
+}
+
+func SetSessionContext(ctx context.Context, sessionID string) context.Context {
+	if strings.TrimSpace(sessionID) == "" {
+		return ctx
+	}
+
+	return metadata.AppendToOutgoingContext(ctx, internal.AsertoSessionID, sessionID)
 }
 
 func serverAddress(opts *ConnectionOptions) string {
