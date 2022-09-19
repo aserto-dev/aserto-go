@@ -112,8 +112,50 @@ func (m *Middleware) WithResourceFromFields(fields ...string) *Middleware {
 	return m
 }
 
+/*
+WithResourceFromMessageByPath behaves similarly to `WithResourceFromFields` but allows specifying different sets
+of fields for different method paths.
+
+Example:
+
+  middleware.WithResourceFromMessageByPath(
+	  "/example.ExampleService/Method1": []string{"field1", "field2"},
+	  "/example.ExampleService/Method2": []string{"field1", "field2"},
+	  "id", "name",
+  )
+
+When Method1 or Method2 are called, the middleware constructs in a authorization resource with the following structure:
+
+  {
+	  "field1": <value from message>,
+	  "field2": <value from message>
+  }
+
+For all other methods, the middleware constructs in a authorization resource with the following structure:
+
+  {
+	  "id": <value from message>,
+	  "name": <value from message>
+  }
+*/
 func (m *Middleware) WithResourceFromMessageByPath(fieldsByPath map[string][]string, defaults ...string) *Middleware {
 	m.resourceMappers = append(m.resourceMappers, messageResourceMapper(fieldsByPath, defaults...))
+	return m
+}
+
+/*
+WithResourceFromContextValue instructs the middleware to read the specified value from the incoming request
+context and add it to the authorization resource context.
+
+Example:
+
+  middleware.WithResourceFromContextValue("account_id", "account")
+
+In each incoming request, the middlware reads the value of the "account_id" key from the request context and
+adds its value to the "account" field in the authorization resource context.
+*/
+func (m *Middleware) WithResourceFromContextValue(ctxKey interface{}, field string) *Middleware {
+	m.resourceMappers = append(m.resourceMappers, contextValueResourceMapper(ctxKey, field))
 	return m
 }
 
@@ -227,6 +269,14 @@ func messageResourceMapper(fieldsByPath map[string][]string, defaults ...string)
 			for k, v := range resource.AsMap() {
 				res[k] = v
 			}
+		}
+	}
+}
+
+func contextValueResourceMapper(ctxKey interface{}, field string) ResourceMapper {
+	return func(ctx context.Context, _ interface{}, res map[string]interface{}) {
+		if v := ctx.Value(ctxKey); v != nil {
+			res[field] = v
 		}
 	}
 }
