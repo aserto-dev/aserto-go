@@ -88,7 +88,7 @@ func (b *IdentityBuilder) Mapper(mapper IdentityMapper) *IdentityBuilder {
 	return b
 }
 
-func (b *IdentityBuilder) build(ctx context.Context, req interface{}) *api.IdentityContext {
+func (b *IdentityBuilder) Build(ctx context.Context, req interface{}) *api.IdentityContext {
 	identity := internal.NewIdentity(b.identityType, b.defaultIdentity)
 
 	if b.mapper != nil {

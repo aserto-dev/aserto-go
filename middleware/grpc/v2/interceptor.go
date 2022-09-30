@@ -11,10 +11,11 @@ import (
 	"fmt"
 
 	"github.com/aserto-dev/aserto-go/middleware"
+	grpcmiddleware "github.com/aserto-dev/aserto-go/middleware/grpc"
 	"github.com/aserto-dev/aserto-go/middleware/grpc/internal/pbutil"
 	"github.com/aserto-dev/aserto-go/middleware/internal"
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	authz "github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
 	"github.com/aserto-dev/go-utils/cerr"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -42,7 +43,7 @@ The values for these parameters can be set globally or extracted dynamically fro
 */
 type Middleware struct {
 	// Identity determines the caller identity used in authorization calls.
-	Identity *IdentityBuilder
+	Identity *grpcmiddleware.IdentityBuilder
 
 	client          AuthorizerClient
 	policy          api.PolicyContext
@@ -72,8 +73,8 @@ func New(client AuthorizerClient, policy Policy) *Middleware {
 
 	return &Middleware{
 		client:          client,
-		Identity:        (&IdentityBuilder{}).FromMetadata("authorization"),
-		policy:          *internal.DefaultPolicyContext(policy),
+		Identity:        (&grpcmiddleware.IdentityBuilder{}).FromMetadata("authorization"),
+		policy:          api.PolicyContext{Path: policy.Path, Decisions: []string{policy.Decision}},
 		policyMapper:    policyMapper,
 		resourceMappers: []ResourceMapper{},
 	}
@@ -213,7 +214,7 @@ func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 	resp, err := m.client.Is(
 		ctx,
 		&authz.IsRequest{
-			IdentityContext: m.Identity.build(ctx, req),
+			IdentityContext: &api.IdentityContext{Identity: req, Type: req},
 			PolicyContext:   &m.policy,
 			ResourceContext: resource,
 		},

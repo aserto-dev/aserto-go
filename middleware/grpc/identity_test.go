@@ -29,18 +29,18 @@ func TestTypeAssignment(t *testing.T) {
 	assert.Equal(
 		t,
 		JWT(),
-		(&IdentityBuilder{}).JWT().ID(username).build(context.TODO(), nil),
+		(&IdentityBuilder{}).JWT().ID(username).Build(context.TODO(), nil),
 		"Expected JWT identity type",
 	)
 }
 
 func TestAssignmentOverride(t *testing.T) {
-	identity := (&IdentityBuilder{}).JWT().None().build(context.TODO(), nil)
+	identity := (&IdentityBuilder{}).JWT().None().Build(context.TODO(), nil)
 
 	assert.Equal(
 		t,
 		Anon(),
-		(&IdentityBuilder{}).JWT().None().build(context.TODO(), nil),
+		(&IdentityBuilder{}).JWT().None().Build(context.TODO(), nil),
 		identity.Type,
 		"Expected NONE identity to override JWT",
 	)
@@ -59,7 +59,7 @@ func TestNoneClearsIdentity(t *testing.T) {
 	assert.Equal(
 		t,
 		Anon(),
-		(&IdentityBuilder{}).ID("id").None().build(context.TODO(), nil),
+		(&IdentityBuilder{}).ID("id").None().Build(context.TODO(), nil),
 		"WithNone should override previously assigned identity",
 	)
 }
@@ -74,7 +74,7 @@ func TestIdentityFromMetadata(t *testing.T) {
 	assert.Equal(
 		t,
 		JWT(),
-		builder.build(ctx, nil),
+		builder.Build(ctx, nil),
 		"Identity should be read from context metadata",
 	)
 }
@@ -89,7 +89,7 @@ func TestIdentityFromMissingMetadata(t *testing.T) {
 	assert.Equal(
 		t,
 		Anon(),
-		builder.build(ctx, nil),
+		builder.Build(ctx, nil),
 		"Missing metadata value results in anonymous identity",
 	)
 }
@@ -101,7 +101,7 @@ func TestIdentityFromMissingMetadataValue(t *testing.T) {
 	assert.Equal(
 		t,
 		Anon(),
-		builder.build(context.TODO(), nil),
+		builder.Build(context.TODO(), nil),
 		"Missing metadata results in anonymous identity",
 	)
 }
@@ -117,7 +117,7 @@ func TestIdentityFromContextValue(t *testing.T) {
 	assert.Equal(
 		t,
 		SUB(),
-		builder.build(ctx, nil),
+		builder.Build(ctx, nil),
 		"Identity should be read from context value",
 	)
 }
@@ -129,7 +129,7 @@ func TestMissingContextValue(t *testing.T) {
 	assert.Equal(
 		t,
 		Anon(),
-		builder.build(context.TODO(), nil),
+		builder.Build(context.TODO(), nil),
 		"Missing context value should result in anonymous identity",
 	)
 }

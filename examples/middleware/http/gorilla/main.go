@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/aserto-dev/aserto-go/authorizer/grpc"
+	v1 "github.com/aserto-dev/aserto-go/authorizer/grpc/v1"
 	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/middleware"
 	"github.com/aserto-dev/aserto-go/middleware/http/std"
@@ -18,7 +18,7 @@ const port = 8080
 
 func main() {
 	ctx := context.Background()
-	authClient, err := grpc.New(
+	authClient, err := v1.New(
 		ctx,
 		client.WithAddr("localhost:8282"),
 	)

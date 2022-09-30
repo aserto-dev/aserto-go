@@ -3,14 +3,14 @@ Package grpc is used to create an AuthorizerClient that communicates with the au
 
 AuthorizerClient is the low-level interface that exposes the raw authorization API.
 */
-package grpc
+package v2
 
 import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev/aserto-go/client/authorizer"
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	"github.com/aserto-dev/aserto-go/client/authorizer/v2"
+	authz "github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
 )
 
 // New returns a new gRPC AuthorizerClient with the specified options.

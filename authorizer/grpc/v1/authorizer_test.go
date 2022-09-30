@@ -1,11 +1,11 @@
-package grpc_test
+package v1_test
 
 import (
 	"context"
 	"fmt"
 	"log"
 
-	"github.com/aserto-dev/aserto-go/authorizer/grpc"
+	v1 "github.com/aserto-dev/aserto-go/authorizer/grpc/v1"
 	"github.com/aserto-dev/aserto-go/client"
 
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
@@ -16,7 +16,7 @@ func Example() {
 	ctx := context.Background()
 
 	// Create new authorizer client.
-	authorizer, err := grpc.New(
+	authorizer, err := v1.New(
 		ctx,
 		client.WithAPIKeyAuth("<Aserto authorizer API key"),
 		client.WithTenantID("<Aserto tenant ID>"),

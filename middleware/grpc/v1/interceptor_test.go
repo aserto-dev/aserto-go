@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	grpcmw "github.com/aserto-dev/aserto-go/middleware/grpc"
+	grpcmw "github.com/aserto-dev/aserto-go/middleware/grpc/v1"
 	"github.com/aserto-dev/aserto-go/middleware/internal/mock"
 	"github.com/aserto-dev/aserto-go/middleware/internal/test"
 	"github.com/aserto-dev/go-utils/cerr"

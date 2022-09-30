@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aserto-dev/aserto-go/authorizer/grpc"
+	v1 "github.com/aserto-dev/aserto-go/authorizer/grpc/v1"
 	"github.com/aserto-dev/aserto-go/client"
 	mw "github.com/aserto-dev/aserto-go/middleware/http/std"
 )
@@ -20,7 +20,7 @@ func Example() {
 	ctx := context.Background()
 
 	// Create authorizer client.
-	authorizer, err := grpc.New(
+	authorizer, err := v1.New(
 		ctx,
 		client.WithAPIKeyAuth("<Aserto authorizer API Key>"),
 		client.WithTenantID("<Aserto tenant ID>"),
