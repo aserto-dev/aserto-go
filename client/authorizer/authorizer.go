@@ -9,7 +9,7 @@ import (
 	"github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 	"google.golang.org/grpc"
 
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
 
 	"github.com/pkg/errors"
 )

@@ -5,7 +5,7 @@ import (
 
 	"github.com/aserto-dev/aserto-go/middleware"
 	"github.com/aserto-dev/aserto-go/middleware/internal"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
 	"google.golang.org/grpc/metadata"
 )
 

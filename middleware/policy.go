@@ -9,8 +9,8 @@ package middleware
 
 // Policy holds authorization options that apply to all requests.
 type Policy struct {
-	// ID is the ID of the aserto policy being queried for authorization.
-	ID string
+	// Name is the Name of the aserto policy being queried for authorization.
+	Name string
 
 	// Path is the package name of the rego policy to evaluate.
 	// If left empty, a policy mapper must be attached to the middleware to provide
@@ -19,4 +19,7 @@ type Policy struct {
 
 	// Decision is the authorization rule to use.
 	Decision string
+
+	// Label name of the aserto policy's instance being queried for authorization.
+	InstanceLabel string
 }

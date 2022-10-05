@@ -10,7 +10,7 @@ import (
 
 	"github.com/aserto-dev/aserto-go/client"
 	"github.com/aserto-dev/aserto-go/client/authorizer"
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	authz "github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
 )
 
 // New returns a new gRPC AuthorizerClient with the specified options.

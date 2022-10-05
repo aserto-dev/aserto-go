@@ -22,7 +22,7 @@ go get -u github.com/aserto-dev/aserto-go
 ## AuthorizerClient
 
 The `AuthorizerClient` interface, defined in
-[`"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"`](https://github.com/aserto-dev/go-grpc-authz/blob/main/aserto/authorizer/authorizer/v1/authorizer_grpc.pb.go#L20),
+[`"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"`](https://github.com/aserto-dev/go-authorizer/blob/main/aserto/authorizer/v2/authorizer_grpc.pb.go#L24),
 describes the operations exposed by the Aserto authorizer service.
 
 Two implementation of `AuthorizerClient` are available:
@@ -45,7 +45,6 @@ import (
 authorizer, err := grpc.New(
 	ctx,
 	client.WithAPIKeyAuth("<API Key>"),
-	client.WithTenantID("<Tenant ID>"),
 )
 ```
 
@@ -78,7 +77,6 @@ ctx := context.Background()
 authorizer, err := grpc.New(
 	context.WithTimeout(ctx, time.Duration(10) * time.Second),
 	aserto.WithAPIKeyAuth("<API Key>"),
-	aserto.WithTenantID("<Tenant ID>"),
 )
 ```
 
@@ -89,15 +87,14 @@ Use the client's `Is()` method to request authorization decisions from the Asert
 
 ```go
 import (
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	authz "github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
 )
 
 resp, err := authorizer.Is(c.Context, &authz.IsRequest{
 	PolicyContext: &api.PolicyContext{
-		Id:        "peoplefinder",
-		Path:      "peoplefinder.GET.users.__id",
-		Decisions: "allowed",
+		Path:      		"peoplefinder.GET.users.__id",
+		Decisions: 		"allowed",
 	},
 	IdentityContext: &api.IdentityContext{
 		Identity: "<user name>",
@@ -124,8 +121,8 @@ by all authorization calls.
 ```go
 // Policy holds global authorization options that apply to all requests.
 type Policy struct {
-	// ID is the ID of the aserto policy being queried for authorization.
-	ID string
+	// Name is the Name of the aserto policy being queried for authorization.
+	Name string
 
 	// Path is the package name of the rego policy to evaluate.
 	// If left empty, a policy mapper must be attached to the middleware to provide
@@ -134,6 +131,9 @@ type Policy struct {
 
 	// Decision is the authorization rule to use.
 	Decision string
+
+	// Label name of the aserto policy's instance being queried for authorization.	
+	InstanceLabel string
 }
 ```
 
@@ -221,8 +221,7 @@ import (
 middleware, err := grpcmw.New(
 	client,
 	middleware.Policy{
-		ID: "<Policy ID>",
-		Decision: "allowed",
+		Decision: 	   "allowed",
 	},
 )
 
@@ -290,8 +289,7 @@ import (
 mw := std.New(
 	client,
 	middleware.Policy{
-		ID: "<Policy ID>",
-		Decision: "allowed",
+		Decision:	   "allowed",
 	},
 )
 ```
@@ -427,7 +425,7 @@ in the "github.com/aserto-dev/go-grpc" package.
 | Client | Package |
 | ------ | ------- |
 | `AccountClient` | `"github.com/aserto-dev/go-grpc/aserto/tenant/account/v1"` |
-| `AuthorizerClient` | `"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"` |
+| `AuthorizerClient` | `"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"` |
 | `ConnectionClient` | `"github.com/aserto-dev/go-grpc/aserto/tenant/connection/v1"` |
 | `DirectoryClient` | `"github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"` |
 | `InfoClient` | `"github.com/aserto-dev/go-grpc/aserto/common/info/v1"` |

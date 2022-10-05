@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/aserto-dev/aserto-go/middleware"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
 )
 
 const username = "george"

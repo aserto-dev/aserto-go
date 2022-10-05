@@ -4,7 +4,7 @@ Package authorizer provides functions for creating an AuthorizerClient.
 AuthorizerClient
 
 AuthorizerClient is the low-level interface that exposes the raw authorization API.
-It is defined in "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1" and provides direct access
+It is defined in "github.com/aserto-dev/go-authorizer/aserto/authorizer/v2" and provides direct access
 to the authorizer backend.
 
 Two flavors of AuthorizerClient are available:
