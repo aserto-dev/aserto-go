@@ -7,7 +7,7 @@ middleware.
 
 AuthorizerClient
 
-The AuthorizerClient interface, defined in "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1",
+The AuthorizerClient interface, defined in "github.com/aserto-dev/go-authorizer/aserto/authorizer/v2",
 describes the operations exposed by the Aserto authorizer service.
 
 Two implementation of AuthorizerClient are available:

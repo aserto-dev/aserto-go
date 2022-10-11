@@ -7,16 +7,17 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/aserto-dev/aserto-go/middleware/grpc/internal/pbutil"
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 func TestFieldMaskIsValid(t *testing.T) {
 	msg := &authorizer.IsRequest{
 		PolicyContext: &api.PolicyContext{
-			Id:   "policyID",
-			Path: "policy.path",
+			Name:          "policyName",
+			Path:          "policy.path",
+			InstanceLabel: "label",
 		},
 		IdentityContext: &api.IdentityContext{
 			Type:     api.IdentityType_IDENTITY_TYPE_SUB,
@@ -31,7 +32,8 @@ func TestFieldMaskIsValid(t *testing.T) {
 		"policy_context.path",
 		"identity_context.identity",
 		"resource_context",
-		"policy_context.id",
+		"policy_context.name",
+		"policy_context.instance_label",
 	)
 
 	assert.NoError(t, err, "failed to create field mask")
@@ -73,8 +75,9 @@ func TestFieldMaskIsValid(t *testing.T) {
 		[]string{"policy_context"},
 		map[string]interface{}{
 			"policy_context": map[string]interface{}{
-				"id":   "policyID",
-				"path": "policy.path",
+				"name":          "policyName",
+				"path":          "policy.path",
+				"instanceLabel": "label",
 			},
 		},
 	))

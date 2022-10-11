@@ -5,17 +5,18 @@ import (
 
 	"github.com/aserto-dev/aserto-go/middleware"
 	"github.com/aserto-dev/aserto-go/middleware/internal/mock"
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 const (
 	DefaultIdentityType = api.IdentityType_IDENTITY_TYPE_SUB
 
-	DefaultUsername = "username"
-	DefaultPolicyID = "policyId"
-	DefaultDecision = "allowed"
+	DefaultUsername      = "username"
+	DefaultPolicyName    = "policyName"
+	DefaultDecision      = "allowed"
+	DefaultInstanceLabel = "label"
 
 	OverridePolicyPath = "override.policy.path"
 )
@@ -46,7 +47,12 @@ func NewTest(t *testing.T, name string, options *Options) *Case {
 }
 
 func Policy(path string) middleware.Policy {
-	return middleware.Policy{ID: DefaultPolicyID, Path: path, Decision: DefaultDecision}
+	return middleware.Policy{
+		Name:          DefaultPolicyName,
+		Path:          path,
+		Decision:      DefaultDecision,
+		InstanceLabel: DefaultInstanceLabel,
+	}
 }
 
 func Decision(authorize bool) *authorizer.Decision {
@@ -55,11 +61,12 @@ func Decision(authorize bool) *authorizer.Decision {
 
 func Request(o ...Override) *authorizer.IsRequest {
 	os := &Overrides{
-		idtype:    api.IdentityType_IDENTITY_TYPE_SUB,
-		id:        DefaultUsername,
-		policy:    DefaultPolicyID,
-		decisions: []string{DefaultDecision},
-		resource:  &structpb.Struct{Fields: map[string]*structpb.Value{}},
+		idtype:        api.IdentityType_IDENTITY_TYPE_SUB,
+		id:            DefaultUsername,
+		policy:        DefaultPolicyName,
+		decisions:     []string{DefaultDecision},
+		resource:      &structpb.Struct{Fields: map[string]*structpb.Value{}},
+		instanceLabel: DefaultInstanceLabel,
 	}
 
 	for _, ov := range o {
@@ -68,18 +75,24 @@ func Request(o ...Override) *authorizer.IsRequest {
 
 	return &authorizer.IsRequest{
 		IdentityContext: &api.IdentityContext{Type: os.idtype, Identity: os.id},
-		PolicyContext:   &api.PolicyContext{Id: os.policy, Path: os.path, Decisions: os.decisions},
+		PolicyContext: &api.PolicyContext{
+			Name:          os.policy,
+			Path:          os.path,
+			Decisions:     os.decisions,
+			InstanceLabel: os.instanceLabel,
+		},
 		ResourceContext: os.resource,
 	}
 }
 
 type Overrides struct {
-	idtype    api.IdentityType
-	id        string
-	policy    string
-	path      string
-	decisions []string
-	resource  *structpb.Struct
+	idtype        api.IdentityType
+	id            string
+	policy        string
+	instanceLabel string
+	path          string
+	decisions     []string
+	resource      *structpb.Struct
 }
 
 type Override func(*Overrides)
@@ -96,9 +109,15 @@ func Identity(id string) Override {
 	}
 }
 
-func PolicyID(id string) Override {
+func PolicyName(name string) Override {
 	return func(o *Overrides) {
-		o.policy = id
+		o.policy = name
+	}
+}
+
+func PolicyInstanceLabel(label string) Override {
+	return func(o *Overrides) {
+		o.instanceLabel = label
 	}
 }
 

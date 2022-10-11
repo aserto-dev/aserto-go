@@ -8,8 +8,8 @@ import (
 	"github.com/aserto-dev/aserto-go/authorizer/http"
 	"github.com/aserto-dev/aserto-go/client"
 
-	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	authz "github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
 )
 
 func Example() {
@@ -18,7 +18,6 @@ func Example() {
 	// Create new authorizer client.
 	authorizer, err := http.New(
 		client.WithAPIKeyAuth("<Aserto authorizer API key"),
-		client.WithTenantID("<Aserto tenant ID>"),
 	)
 	if err != nil {
 		log.Fatal("Failed to create authorizer:", err)
@@ -29,9 +28,10 @@ func Example() {
 		ctx,
 		&authz.IsRequest{
 			PolicyContext: &api.PolicyContext{
-				Id:        "<Aserto Policy ID>",
-				Path:      "<Policy path (e.g. 'peoplefinder.GET.users')",
-				Decisions: []string{"<authorization decisions (e.g. 'allowed')>"},
+				Name:          "<Aserto Policy Name>",
+				Path:          "<Policy path (e.g. 'peoplefinder.GET.users')",
+				Decisions:     []string{"<authorization decisions (e.g. 'allowed')>"},
+				InstanceLabel: "<Aserto Policy Intsance Label>",
 			},
 			IdentityContext: &api.IdentityContext{
 				Type:     api.IdentityType_IDENTITY_TYPE_SUB,

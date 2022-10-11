@@ -28,8 +28,9 @@ func main() {
 	mw := ginz.New(
 		authClient,
 		middleware.Policy{
-			ID:       "local",
-			Decision: "allowed",
+			Name:          "local",
+			Decision:      "allowed",
+			InstanceLabel: "label",
 		},
 	)
 	mw.Identity.Mapper(func(r *http.Request, identity middleware.Identity) {

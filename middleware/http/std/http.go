@@ -13,8 +13,8 @@ import (
 	"github.com/aserto-dev/aserto-go/middleware"
 	httpmw "github.com/aserto-dev/aserto-go/middleware/http"
 	"github.com/aserto-dev/aserto-go/middleware/internal"
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
 	"github.com/gorilla/mux"
 	"google.golang.org/protobuf/types/known/structpb"
 )

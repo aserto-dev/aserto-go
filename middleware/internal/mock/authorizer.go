@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )
@@ -49,5 +49,29 @@ func (c *Authorizer) Query(
 	in *authorizer.QueryRequest,
 	opts ...grpc.CallOption,
 ) (*authorizer.QueryResponse, error) {
+	return nil, nil
+}
+
+func (c *Authorizer) Compile(
+	ctx context.Context,
+	in *authorizer.CompileRequest,
+	opts ...grpc.CallOption,
+) (*authorizer.CompileResponse, error) {
+	return nil, nil
+}
+
+func (c *Authorizer) GetPolicy(
+	ctx context.Context,
+	in *authorizer.GetPolicyRequest,
+	opts ...grpc.CallOption,
+) (*authorizer.GetPolicyResponse, error) {
+	return nil, nil
+}
+
+func (c *Authorizer) ListPolicies(
+	ctx context.Context,
+	in *authorizer.ListPoliciesRequest,
+	opts ...grpc.CallOption,
+) (*authorizer.ListPoliciesResponse, error) {
 	return nil, nil
 }

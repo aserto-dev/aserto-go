@@ -33,8 +33,9 @@ func Example() {
 	middleware := mw.New(
 		authorizer,
 		mw.Policy{
-			ID:       "<Aserto policy ID>",
-			Decision: "<authorization decision (e.g. 'allowed')",
+			Name:          "<Aserto policy Name>",
+			Decision:      "<authorization decision (e.g. 'allowed')",
+			InstanceLabel: "<Aserto  policy instance label>",
 		},
 	)
 
