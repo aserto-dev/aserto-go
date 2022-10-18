@@ -155,6 +155,7 @@ func (a *authorizer) GetPolicy(
 	if in.FieldMask != nil {
 		paths = in.FieldMask.Paths
 	}
+
 	respBody, err := a.getAPIRequest(ctx, "policies/"+in.Id, paths, opts)
 	if err != nil {
 		return nil, err
@@ -178,12 +179,33 @@ func (a *authorizer) ListPolicies(
 	if in.FieldMask != nil {
 		paths = in.FieldMask.Paths
 	}
+
 	respBody, err := a.getAPIRequest(ctx, "policies", paths, opts)
 	if err != nil {
 		return nil, err
 	}
 
 	var response authz.ListPoliciesResponse
+	if err := protojson.Unmarshal(respBody, &response); err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+func (a *authorizer) Info(
+	ctx context.Context,
+	in *authz.InfoRequest,
+	opts ...grpc.CallOption,
+) (*authz.InfoResponse, error) {
+	var paths []string
+
+	respBody, err := a.getAPIRequest(ctx, "info", paths, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var response authz.InfoResponse
 	if err := protojson.Unmarshal(respBody, &response); err != nil {
 		return nil, err
 	}
@@ -203,16 +225,19 @@ func (a *authorizer) getAPIRequest(
 
 	endpointURL := a.endpointURL(endpoint)
 	if len(fieldMask) > 0 {
-		endpointURL = endpointURL + "?field_mask="
+		endpointURL += "?field_mask="
 		for _, field := range fieldMask {
 			endpointURL = endpointURL + field + ","
 		}
+
 		endpointURL = strings.TrimSuffix(endpointURL, ",")
 	}
+
 	resp, err := a.getRequest(ctx, endpointURL)
 	if err != nil {
 		return nil, err
 	}
+
 	defer resp.Body.Close()
 
 	return io.ReadAll(resp.Body)

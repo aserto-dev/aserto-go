@@ -4,9 +4,6 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
-	"github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"
-	"github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 	"google.golang.org/grpc"
 
 	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
@@ -20,16 +17,6 @@ type Client struct {
 
 	// Authorizer provides methods for performing authorization requests.
 	Authorizer authorizer.AuthorizerClient
-
-	// Directory provides methods for interacting with the Aserto user directory.
-	// Use the Directory client to manage users, application, and roles.
-	Directory directory.DirectoryClient
-
-	// Policy provides read-only methods for listing and retrieving authorization policies defined in an Aserto account.
-	Policy policy.PolicyClient
-
-	// Info provides read-only access to system information and configuration.
-	Info info.InfoClient
 }
 
 // NewClient creates a Client with the specified connection options.
@@ -42,9 +29,6 @@ func New(ctx context.Context, opts ...client.ConnectionOption) (*Client, error) 
 	return &Client{
 		conn:       connection,
 		Authorizer: authorizer.NewAuthorizerClient(connection.Conn),
-		Directory:  directory.NewDirectoryClient(connection.Conn),
-		Policy:     policy.NewPolicyClient(connection.Conn),
-		Info:       info.NewInfoClient(connection.Conn),
 	}, err
 }
 
