@@ -360,10 +360,7 @@ The gin middleware looks and behaves just like the net/http middleware with the 
 In addition to the authorizer service, aserto-go provides gRPC clients for Aserto's administrative services,
 allowing users to programmatically manage their aserto account.
 
-There are two top-level services, each with its own set of sub-services.
-
-1. `client/authorizer` defines a client for services run at the edge and used to serve authorization requests.
-2. `client/tenant` defines the control-plane services used to configure authorizers.
+`client/authorizer` defines a client for services run at the edge and used to serve authorization requests.
 
 
 An API client is created using `New()` with the same connection options as the authorizer client.
@@ -375,64 +372,5 @@ An API client is created using `New()` with the same connection options as the a
 type Client struct {
 	// Authorizer provides methods for performing authorization requests.
 	Authorizer authorizer.AuthorizerClient
-
-	// Directory provides methods for interacting with the Aserto user directory.
-	// Use the Directory client to manage users, application, and roles.
-	Directory dir.DirectoryClient
-
-	// Policy provides methods for creating, listing, and deleting policy references.
-	Policy policy.PolicyClient
-
-	// Info provides read-only access to system information and configuration.
-	Info info.InfoClient
 }
 ```
-
-### Tenant Client
-
-```go
-// Client provides access to the Aserto control service.
-type Client struct {
-	// Account provides methods for managing a customer account.
-	Account account.AccountClient
-
-	// Connections provides methods to create and manage connections.
-	Connections connection.ConnectionClient
-
-	// Onboarding provides methods to create tenants and invite users.
-	Onboarding onboarding.OnboardingClient
-
-	// Policy provides methods for creating, listing, and deleting policy references.
-	Policy policy.PolicyClient
-
-	// Profile provides methods for managing user invitations.
-	Profile profile.ProfileClient
-
-	// Provider provides methods for viewing the providers available to create connections.
-	Provider provider.ProviderClient
-
-	// SCC provides methods for interacting with a tenant's configured source-control repositories.
-	SCC scc.SourceCodeCtlClient
-
-	// Info provides methods for retrieving system information and configuration.
-	Info info.InfoClient
-}
-```
-
-Similar to `AuthorizerClient`, the client interfaces are created from protocol buffer definitions and can be found
-in the "github.com/aserto-dev/go-grpc" package.
-
-| Client | Package |
-| ------ | ------- |
-| `AccountClient` | `"github.com/aserto-dev/go-grpc/aserto/tenant/account/v1"` |
-| `AuthorizerClient` | `"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"` |
-| `ConnectionClient` | `"github.com/aserto-dev/go-grpc/aserto/tenant/connection/v1"` |
-| `DirectoryClient` | `"github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"` |
-| `InfoClient` | `"github.com/aserto-dev/go-grpc/aserto/common/info/v1"` |
-| `OnboardingClient` | `"github.com/aserto-dev/go-grpc/aserto/tenant/onboarding/v1"` |
-| `PolicyClient` | `"github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"` |
-| `ProfileClient` | `"github.com/aserto-dev/go-grpc/aserto/tenant/profile/v1"` |
-| `ProviderClient` | `"github.com/aserto-dev/go-grpc/aserto/tenant/provider/v1"` |
-| `SourceCodeCtlClient` | `"github.com/aserto-dev/go-grpc/aserto/tenant/scc/v1"` |
-
-Data structures used in these interfaces are defined in `"github.com/aserto-dev/go-grpc/aserto/api/v1"`.

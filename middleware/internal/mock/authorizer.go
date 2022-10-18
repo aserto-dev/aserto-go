@@ -75,3 +75,11 @@ func (c *Authorizer) ListPolicies(
 ) (*authorizer.ListPoliciesResponse, error) {
 	return nil, nil
 }
+
+func (c *Authorizer) Info(
+	ctx context.Context,
+	in *authorizer.InfoRequest,
+	opts ...grpc.CallOption,
+) (*authorizer.InfoResponse, error) {
+	return nil, nil
+}
