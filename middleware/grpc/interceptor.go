@@ -15,7 +15,7 @@ import (
 	"github.com/aserto-dev/aserto-go/middleware/internal"
 	authz "github.com/aserto-dev/go-authorizer/aserto/authorizer/v2"
 	"github.com/aserto-dev/go-authorizer/aserto/authorizer/v2/api"
-	"github.com/aserto-dev/go-utils/cerr"
+	"github.com/aserto-dev/go-authorizer/pkg/aerr"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -223,11 +223,11 @@ func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 	}
 
 	if len(resp.Decisions) == 0 {
-		return cerr.ErrInvalidDecision
+		return aerr.ErrInvalidDecision
 	}
 
 	if !resp.Decisions[0].Is {
-		return cerr.ErrAuthorizationFailed
+		return aerr.ErrAuthorizationFailed
 	}
 
 	return nil
