@@ -7,7 +7,7 @@ import (
 
 	httpmw "github.com/aserto-dev/aserto-go/middleware/http/std"
 	"github.com/aserto-dev/aserto-go/middleware/internal/test"
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 )
 
 type TestCase struct {

@@ -15,13 +15,15 @@ import (
 func TestFieldMaskIsValid(t *testing.T) {
 	msg := &authorizer.IsRequest{
 		PolicyContext: &api.PolicyContext{
-			Name:          "policyName",
-			Path:          "policy.path",
-			InstanceLabel: "label",
+			Path: "policy.path",
 		},
 		IdentityContext: &api.IdentityContext{
 			Type:     api.IdentityType_IDENTITY_TYPE_SUB,
 			Identity: "username",
+		},
+		PolicyInstance: &api.PolicyInstance{
+			Name:          "policyName",
+			InstanceLabel: "label",
 		},
 	}
 
@@ -32,8 +34,8 @@ func TestFieldMaskIsValid(t *testing.T) {
 		"policy_context.path",
 		"identity_context.identity",
 		"resource_context",
-		"policy_context.name",
-		"policy_context.instance_label",
+		"policy_instance.name",
+		"policy_instance.instance_label",
 	)
 
 	assert.NoError(t, err, "failed to create field mask")
@@ -75,9 +77,7 @@ func TestFieldMaskIsValid(t *testing.T) {
 		[]string{"policy_context"},
 		map[string]interface{}{
 			"policy_context": map[string]interface{}{
-				"name":          "policyName",
-				"path":          "policy.path",
-				"instanceLabel": "label",
+				"path": "policy.path",
 			},
 		},
 	))
