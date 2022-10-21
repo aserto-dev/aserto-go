@@ -76,9 +76,11 @@ func Request(o ...Override) *authorizer.IsRequest {
 	return &authorizer.IsRequest{
 		IdentityContext: &api.IdentityContext{Type: os.idtype, Identity: os.id},
 		PolicyContext: &api.PolicyContext{
+			Path:      os.path,
+			Decisions: os.decisions,
+		},
+		PolicyInstance: &api.PolicyInstance{
 			Name:          os.policy,
-			Path:          os.path,
-			Decisions:     os.decisions,
 			InstanceLabel: os.instanceLabel,
 		},
 		ResourceContext: os.resource,

@@ -42,7 +42,8 @@ type Middleware struct {
 	Identity *httpmw.IdentityBuilder
 
 	client         AuthorizerClient
-	policy         api.PolicyContext
+	policyContext  api.PolicyContext
+	policyInstance api.PolicyInstance
 	policyMapper   StringMapper
 	resourceMapper StructMapper
 }
@@ -71,7 +72,8 @@ func New(client AuthorizerClient, policy Policy) *Middleware {
 	return &Middleware{
 		client:         client,
 		Identity:       (&httpmw.IdentityBuilder{}).FromHeader("Authorization"),
-		policy:         *internal.DefaultPolicyContext(policy),
+		policyContext:  *internal.DefaultPolicyContext(policy),
+		policyInstance: *internal.DefaultPolicyInstance(policy),
 		resourceMapper: defaultResourceMapper,
 		policyMapper:   policyMapper,
 	}
@@ -81,13 +83,14 @@ func New(client AuthorizerClient, policy Policy) *Middleware {
 func (m *Middleware) Handler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if m.policyMapper != nil {
-			m.policy.Path = m.policyMapper(r)
+			m.policyContext.Path = m.policyMapper(r)
 		}
 
 		isRequest := authorizer.IsRequest{
 			IdentityContext: m.Identity.Build(r),
-			PolicyContext:   &m.policy,
+			PolicyContext:   &m.policyContext,
 			ResourceContext: m.resourceMapper(r),
+			PolicyInstance:  &m.policyInstance,
 		}
 		resp, err := m.client.Is(
 			r.Context(),

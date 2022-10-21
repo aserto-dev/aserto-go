@@ -45,7 +45,8 @@ type Middleware struct {
 	Identity *IdentityBuilder
 
 	client          AuthorizerClient
-	policy          api.PolicyContext
+	policyContext   api.PolicyContext
+	policyInstance  api.PolicyInstance
 	policyMapper    StringMapper
 	resourceMappers []ResourceMapper
 }
@@ -73,7 +74,8 @@ func New(client AuthorizerClient, policy Policy) *Middleware {
 	return &Middleware{
 		client:          client,
 		Identity:        (&IdentityBuilder{}).FromMetadata("authorization"),
-		policy:          *internal.DefaultPolicyContext(policy),
+		policyContext:   *internal.DefaultPolicyContext(policy),
+		policyInstance:  *internal.DefaultPolicyInstance(policy),
 		policyMapper:    policyMapper,
 		resourceMappers: []ResourceMapper{},
 	}
@@ -202,7 +204,7 @@ func (m *Middleware) Stream() grpc.StreamServerInterceptor {
 
 func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 	if m.policyMapper != nil {
-		m.policy.Path = m.policyMapper(ctx, req)
+		m.policyContext.Path = m.policyMapper(ctx, req)
 	}
 
 	resource, err := m.resourceContext(ctx, req)
@@ -214,8 +216,9 @@ func (m *Middleware) authorize(ctx context.Context, req interface{}) error {
 		ctx,
 		&authz.IsRequest{
 			IdentityContext: m.Identity.build(ctx, req),
-			PolicyContext:   &m.policy,
+			PolicyContext:   &m.policyContext,
 			ResourceContext: resource,
+			PolicyInstance:  &m.policyInstance,
 		},
 	)
 	if err != nil {

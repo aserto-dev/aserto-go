@@ -29,14 +29,16 @@ func Example() {
 		ctx,
 		&authz.IsRequest{
 			PolicyContext: &api.PolicyContext{
-				Name:          "<Aserto Policy Name>",
-				Path:          "<Policy path (e.g. 'peoplefinder.GET.users')",
-				Decisions:     []string{"<authorization decisions (e.g. 'allowed')>"},
-				InstanceLabel: "<Aserto Policy Intance Label>",
+				Path:      "<Policy path (e.g. 'peoplefinder.GET.users')",
+				Decisions: []string{"<authorization decisions (e.g. 'allowed')>"},
 			},
 			IdentityContext: &api.IdentityContext{
 				Type:     api.IdentityType_IDENTITY_TYPE_SUB,
 				Identity: "<user id>",
+			},
+			PolicyInstance: &api.PolicyInstance{
+				Name:          "<Aserto Policy Name>",
+				InstanceLabel: "<Aserto Policy Intance Label>",
 			},
 		},
 	)
