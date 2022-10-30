@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev/go-grpc/aserto/registry_tenant/v1"
-	"google.golang.org/grpc"
+	registry_tenant "github.com/aserto-dev/go-grpc/aserto/registry_tenant/v1"
 
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 )
 
 // Client provides access to the Aserto registry tenant services.

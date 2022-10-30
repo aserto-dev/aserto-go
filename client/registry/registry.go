@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev/go-grpc/aserto/registry/v1"
+	registry "github.com/aserto-dev/go-grpc/aserto/registry/v1"
 	"google.golang.org/grpc"
 
 	"github.com/pkg/errors"

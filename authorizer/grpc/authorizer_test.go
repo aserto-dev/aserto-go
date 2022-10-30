@@ -7,9 +7,8 @@ import (
 
 	"github.com/aserto-dev/aserto-go/authorizer/grpc"
 	"github.com/aserto-dev/aserto-go/client"
-
 	authz "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	api "github.com/aserto-dev/go-grpc/aserto/api/v1"
 )
 
 func Example() {

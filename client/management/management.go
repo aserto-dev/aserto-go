@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev/go-grpc/aserto/management/v2"
-	"google.golang.org/grpc"
+	management "github.com/aserto-dev/go-grpc/aserto/management/v2"
 
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 )
 
 // Client provides access to the Aserto Management services.

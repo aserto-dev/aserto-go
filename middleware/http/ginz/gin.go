@@ -7,8 +7,9 @@ import (
 	"github.com/aserto-dev/aserto-go/middleware"
 	httpmw "github.com/aserto-dev/aserto-go/middleware/http"
 	"github.com/aserto-dev/aserto-go/middleware/internal"
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	authorizer "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	api "github.com/aserto-dev/go-grpc/aserto/api/v1"
+
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -94,7 +95,7 @@ func (m *Middleware) Handler(c *gin.Context) {
 			c.AbortWithStatus(http.StatusForbidden)
 		}
 	} else {
-		c.AbortWithError(http.StatusInternalServerError, err) // nolint:errcheck
+		c.AbortWithError(http.StatusInternalServerError, err) //nolint:errcheck
 	}
 }
 
@@ -105,12 +106,15 @@ func (m *Middleware) Handler(c *gin.Context) {
 // parameters, those are added to the path with two leading underscores.
 // An optional prefix can be specified to be included in all paths.
 //
-// Example
+// # Example
 //
 // Using 'WithPolicyFromURL("myapp")', the route
-//   POST /products/{id}
+//
+//	POST /products/{id}
+//
 // becomes the policy path
-//  "myapp.POST.products.__id"
+//
+//	"myapp.POST.products.__id"
 func (m *Middleware) WithPolicyFromURL(prefix string) *Middleware {
 	m.policyMapper = urlPolicyPathMapper(prefix)
 	return m

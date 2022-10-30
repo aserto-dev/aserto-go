@@ -5,7 +5,7 @@ Authorization requests are performed using an AuthorizerClient.
 A client can be used on its own to make authorization calls or, more commonly, it can be used to create server
 middleware.
 
-AuthorizerClient
+# AuthorizerClient
 
 The AuthorizerClient interface, defined in "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1",
 describes the operations exposed by the Aserto authorizer service.
@@ -16,8 +16,7 @@ Two implementation of AuthorizerClient are available:
 
 2. `authorizer/http` provides a client that communicates with the authorizer over its REST HTTP endpoints.
 
-
-Middleware
+# Middleware
 
 Two middleware implementations are available in subpackages:
 
@@ -29,8 +28,7 @@ When authorization middleware is configured and attached to a server, it examine
 authorization parameters like the caller's identity, calls the Aserto authorizers, and rejects messages if their
 access is denied.
 
-
-Other Services
+# Other Services
 
 In addition to the authorizer service, aserto-go provides gRPC clients for Aserto's administrative services,
 allowing users to programmatically manage their aserto account.
@@ -39,6 +37,5 @@ There are two top-level services, each with its own set of sub-services.
 
 1. `client/authorizer` defines a client for services run at the edge and used to serve authorization requests.
 2. `client/tenant` defines the control-plane services used to configure authorizers.
-
 */
 package aserto

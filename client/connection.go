@@ -43,7 +43,7 @@ const defaultTimeout time.Duration = time.Duration(5) * time.Second
 /*
 NewConnection establishes a gRPC connection.
 
-Options
+# Options
 
 Options can be specified to configure the connection or override default behavior:
 
@@ -59,8 +59,7 @@ Options can be specified to configure the connection or override default behavio
 
 6. WithCACertPath() - adds the specified PEM certificate file to the connection's list of trusted root CAs.
 
-
-Timeout
+# Timeout
 
 Connection timeout can be set on the specified context using context.WithTimeout. If no timeout is set on the
 context, the default connection timeout is 5 seconds. For example, to increase the timeout to 10 seconds:
@@ -72,7 +71,6 @@ context, the default connection timeout is 5 seconds. For example, to increase t
 		aserto.WithAPIKeyAuth("<API Key>"),
 		aserto.WithTenantID("<Tenant ID>"),
 	)
-
 */
 func NewConnection(ctx context.Context, opts ...ConnectionOption) (*Connection, error) {
 	return newConnection(ctx, dialContext, opts...)

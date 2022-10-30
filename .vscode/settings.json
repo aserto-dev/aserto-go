@@ -1,0 +1,27 @@
+{
+    "cSpell.words": [
+        "apikey",
+        "aserto",
+        "dupl",
+        "errcheck",
+        "nameset",
+        "nolint",
+        "onebox",
+        "pbutil",
+        "peoplefinder",
+        "protobuf",
+        "protojson",
+        "rdns",
+        "registrytenant",
+        "sessionid",
+        "strct",
+        "stretchr",
+        "structpb",
+        "subpackages",
+        "tempdir",
+        "tenantid",
+        "testpackage",
+        "tlsconf",
+        "wrapf"
+    ]
+}

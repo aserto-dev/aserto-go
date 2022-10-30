@@ -5,8 +5,9 @@ import (
 
 	"github.com/aserto-dev/aserto-go/middleware"
 	"github.com/aserto-dev/aserto-go/middleware/internal/mock"
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
+	authorizer "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	api "github.com/aserto-dev/go-grpc/aserto/api/v1"
+
 	"google.golang.org/protobuf/types/known/structpb"
 )
 

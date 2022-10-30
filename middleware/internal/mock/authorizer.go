@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	authorizer "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 )

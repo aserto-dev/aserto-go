@@ -4,14 +4,13 @@ import (
 	"context"
 
 	"github.com/aserto-dev/aserto-go/client"
-	"github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
-	"github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"
-	"github.com/aserto-dev/go-grpc/aserto/common/info/v1"
-	"google.golang.org/grpc"
-
-	"github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	authorizer "github.com/aserto-dev/go-grpc-authz/aserto/authorizer/authorizer/v1"
+	directory "github.com/aserto-dev/go-grpc/aserto/authorizer/directory/v1"
+	policy "github.com/aserto-dev/go-grpc/aserto/authorizer/policy/v1"
+	info "github.com/aserto-dev/go-grpc/aserto/common/info/v1"
 
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 )
 
 // Client provides access to the Aserto authorization services.

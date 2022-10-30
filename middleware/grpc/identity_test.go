@@ -1,14 +1,14 @@
-package grpc // nolint:testpackage // Testing unexported method .build()
+package grpc //nolint:testpackage // Testing unexported method .build()
 
 import (
 	"context"
 	"testing"
 
+	"github.com/aserto-dev/aserto-go/middleware"
+	api "github.com/aserto-dev/go-grpc/aserto/api/v1"
+
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
-
-	"github.com/aserto-dev/aserto-go/middleware"
-	"github.com/aserto-dev/go-grpc/aserto/api/v1"
 )
 
 const username = "george"
