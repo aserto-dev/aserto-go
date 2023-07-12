@@ -1,3 +1,7 @@
+| :warning: Deprecated       |
+|:---------------------------|
+| Use [go-aserto](https://github.com/aserto-dev/go-aserto) instead  |
+
 # aserto-dev/aserto-go
 
 ![ci](https://github.com/aserto-dev/aserto-go/workflows/ci/badge.svg)
